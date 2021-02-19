@@ -22,11 +22,8 @@ Encadrant : Dr. Ahmed Lounis**
 
 <br />
 
-**Rapport PDF** : TZ - Guillaume Nibert - Rapport - Mise en place d'une communication entre un Raspberry Pi et un téléphone IP.pdf
-
-<br />
-
-**Présentation PDF** : TZ - Guillaume Nibert - Présentation - Mise en place d'une communication entre un Raspberry Pi et un téléphone IP.pdf 
+**Rapport PDF** : [Télécharger](TZ%20-%20Guillaume%20Nibert%20-%20Rapport%20-%20Mise%20en%20place%20d'une%20communication%20entre%20un%20Raspberry%20Pi%20et%20un%20t%C3%A9l%C3%A9phone%20IP.pdf)  
+**Présentation PDF** : [Téléchager](TZ%20-%20Guillaume%20Nibert%20-%20Pr%C3%A9sentation%20-%20Mise%20en%20place%20d'une%20communication%20entre%20un%20Raspberry%20Pi%20et%20un%20t%C3%A9l%C3%A9phone%20IP.pdf)  
 
 Les annexes sont uniquement disponibles dans le rapport.
 

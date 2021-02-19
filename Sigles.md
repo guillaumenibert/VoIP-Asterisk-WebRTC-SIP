@@ -74,3 +74,5 @@ Encadrant : Dr. Ahmed Lounis**
 | WebRTC  | Web Real-Time Communication. “Interface de programmation (API) JavaScript développée au sein du W3C et de l'IETF." - [Wikipédia](https://fr.wikipedia.org/wiki/WebRTC)                                                            |
 | WS      | "L'API WebSocket est une technologie évoluée qui permet d'ouvrir un canal de communication bidirectionnelle entre un navigateur (côté client) et un serveur."                                                                     |
 | WSS     | Web Socket Secure.                                                                                                                                                                                                                |
+
+## [Références](References.md)

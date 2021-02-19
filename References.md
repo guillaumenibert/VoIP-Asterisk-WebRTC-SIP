@@ -44,7 +44,7 @@ Encadrant : Dr. Ahmed Lounis**
 
 <a name="alaw_ulaw_alcatel"></a>**(6)** : Alcaltel-Lucent, *Caractéristiques audio* **In** : *Téléphones Alcatel-Lucent IP Touch 4008/4018 Extended Edition*, p.2, 2010, Disponible sur : https://www.bureautique-communication.fr/fileuploader/download/download/?d=0&file=custom%2Fupload%2F1%2F6%2F16590.pdf.
 
-<a name="alaw_ulaw_geo"></a>**(7)** : Wikipédia,, *G.711*, 17 juillet 2017, Disponible sur : https://fr.wikipedia.org/wiki/G.711.
+<a name="alaw_ulaw_geo"></a>**(7)** : Wikipédia, *G.711*, 17 juillet 2017, Disponible sur : https://fr.wikipedia.org/wiki/G.711.
 
 <a name="extensions_conf"></a>**(8)** : Malcolm Davenport, *Answer, Playback, and Hangup Applications* **In** : *Asterisk Documentation*, Asterisk.org, 19 décembre 2013, Disponible sur : https://wiki.asterisk.org/wiki/display/AST/Answer%2C+Playback%2C+and+Hangup+Applications.
 

@@ -1,0 +1,274 @@
+###########################################################################
+#                                                                         #
+#         4008EE / 4018EE SIP-Touch sets configuration file               #
+#         SIP : 2.00.81 & 2.00.90                                         #
+#                                                                         #
+# This example contains all parameters which may be managed via the       #
+# config file and is in line with 3AK_29000_0285_PEZZA_17                 #
+#                                                                         #
+###########################################################################
+
+
+###########################################################################
+## Syntax informations :
+##
+## All parameters are grouped by sections (the section name is specified
+## with the syntax [section1]). The content is UTF-8 encoded
+## Each configuration item uses a single line with a "key=value" pattern
+## "Key" content starts at the first none-space character and ends with "="
+## or " ="
+## "Value" content starts at the first none-space character and ends at the
+## "\n\r"
+## If the value is empty, the terminal should use the default value instead
+## Lines starting with "#" will be ignored as a comment
+## The items of a list are separated by a ","
+###########################################################################
+
+
+[dns]
+
+###########################################################################
+## The primary DNS IP address HAS TO BE FILLED
+## If no DNS, use the SIP proxy address instead
+###########################################################################
+
+   dns_addr=192.168.1.254
+   dns2_addr=
+   hostname=192.168.1.254
+
+[sip]
+
+###########################################################################
+## Domain name : IP address, FQDN or domain name (see the SIP proxy config)
+###########################################################################
+
+   domain_name=192.168.1.1
+
+###########################################################################
+## Primary SIP proxy and SIP registrar settings
+##
+## Proxy address : IP address, FQDN or domain name
+## Registrar address : IP address, FQDN or domain name (usually, the proxy)
+## SIP proxy UDP port : usually 5060
+## SIP registrar UDP port : by default 5060
+###########################################################################
+
+   proxy_addr=192.168.1.80
+   proxy_port=5060
+   registrar_addr=192.168.1.80
+   registrar_port=5060
+   outbound_proxy_addr=
+   outbound_proxy_port=
+
+###########################################################################
+## Redundancy settings
+##
+## Proxy address : IP address, FQDN or domain name
+## Registrar address : IP address, FQDN or domain name (usually, the proxy)
+## SIP proxy UDP port : usually 5060
+## SIP registrar UDP port : by default 5060
+## sip_transport_mode_survi : Transport mode in PCS mode
+##          0 = UDP or TCP
+##          1 = UDP
+##          2 = TCP
+###########################################################################
+
+   proxy2_addr=192.168.1.80
+   proxy2_port=5060
+   registrar2_addr=192.168.1.80
+   registrar2_port=5060
+   outbound_proxy2_addr=
+   outbound_proxy2_port=
+   pcs_addr=192.168.1.80
+   pcs_port=5060
+   sip_transport_mode_survi=0
+   option_timer=120
+
+###########################################################################
+## Global SIP parameters
+## Transport mode : 0 = UDP or TCP
+##                  1 = UDP
+##                  2 = TCP
+## local_rtp_port : RFC3605 is not supported in this release, so
+##                  only default value can be used
+## PRACK type : 0 = PRACK supported
+##              1 = PRACK required
+##              2 = PRACK disabled
+## Codec settings : 0 = G711 (PCMU)
+##                  4 = G723.1
+##                  8 = G711 (PCMA)
+##                 18 = G729A
+###########################################################################
+
+   register_expire=3600
+   register_retry=300
+   local_sip_port=
+   sip_transport_mode=0
+   local_rtp_port=42000
+   local_rtcp_port=42001
+   prack_type=0
+   preferred_vocoder=8,0,4,18
+
+###########################################################################
+## SIP authentication.
+##
+## Realm : If no authentication, leave empty
+## Authentication name : HAS TO BE FILLED
+##                       If no authentication, PUT A VALUE LIKE none
+## Authentication password : If no authentication, leave empty
+###########################################################################
+
+   authentication_realm=192.168.1.80
+   authentication_name=alcatel
+   authentication_password=11111111
+   user_name=alcatel
+   display_name=Alcatel IP Touch
+
+###########################################################################
+## Voicemail settings
+##
+## Voice mail URI : directory number of the voice mail
+## user name : directory number of the set
+## MWI URI : complete SIP URI of the voice mail
+###########################################################################
+
+   voice_mail_uri=
+   message_waiting_indication_uri=
+
+[qos]
+
+###########################################################################
+## SIP & RTP DIFFSERV : [0,63]
+## SIP QOS Tickets : 0 = disable
+##           1 = enable
+## SIP QOS Tickets Target : domain name
+###########################################################################
+
+   sip_diffserv=0
+   rtp_diffserv=0
+   sip_qos_tickets_enable=0
+   sip_qos_tickets_target=
+
+[sntp]
+
+###########################################################################
+## SNTP server settings (can be OXE or an external server)
+##
+## Timezone construction : UT::60:032802:103103  (Paris - 2021)
+##          GMT delta : 60 = + sixty minutes from GMT time
+##          Daylight saving start (mmddhh) : 032902 = 28 March 2am
+##          Daylight saving end (mmddhh) : 103103 = 31 October 3am
+## The daylight saving settings HAVE to be changed each year.
+###########################################################################
+
+   sntp_addr=192.168.1.254
+   timezone=UT::60:032802:103103
+
+[telnet]
+
+###########################################################################
+## Password to access the telnet session
+###########################################################################
+
+   telnet_password=000000
+
+[arp]
+
+###########################################################################
+## Mode : 0 = ARP spoofing disabled
+##        1 = ARP spoofing enabled
+###########################################################################
+
+   arp_spoofing_enable=1
+   arp_spoofing_timer=30
+
+[init]
+
+###########################################################################
+## For IP Touch with SIP binary in 1.xx, 2.00.10 and 2.00.20, equal or greater than 2.00.81
+##     mode 0 = SIP
+##     mode 1 = NOE
+##
+## For IP Touch with SIP binary 2.00.30 to 2.00.80
+##     mode 0 = NOE
+##     mode 1 = SIP
+###########################################################################
+
+   application_mode=0
+
+[audio]
+
+###########################################################################
+## Tone country : 0 = English
+##                1 = French
+##                2 = German
+##                3 = Italian
+##                4 = Spanish
+##                5 = Dutch
+##                6 = Portuguese
+## DTMF type : 0 = RFC2833
+##             1 = In-band
+##             2 = SIP INFO
+## DTMF level / RLR handset / SLR handset / Sidetone handset :
+## 0 = 0db, 1 = +3db, 2 = +6db, 3 = -3db, 4 = -6db
+## VAD / DTMF feedback / Hearing Aid :
+##       0 = VAD not used
+##       1 = VAD used
+###########################################################################
+
+   tone_country=1
+   dtmf_type=1
+   dtmf_level=0
+   dtmf_avt_payload_type=96
+   vad=0
+   dtmf_feedback_enable=0
+   rlr_handset=0
+   slr_handset=0
+   sidetone_handset=2
+   hearing_aid_enable=0
+
+[appl]
+
+###########################################################################
+## Password to access the administrator menu on the phone (digits only)
+## Power priority : 1 = critical
+##                  2 = high
+##                  3 = low
+## Time format : 0 = 24 hours format
+##               1 = AM / PM
+## Speed dial numbers (first and last name, URI)
+###########################################################################
+
+   admin_password=000000
+   bluetooth_parameters=blue
+   supported_language=0
+   remote_forward_code=
+   remote_forward_deactive_code=
+   power_priority=
+   asset_id=
+   time_format=0
+   speed_dial_1_first_name=
+   speed_dial_1_last_name=
+   speed_dial_1_uri=
+   speed_dial_2_first_name=
+   speed_dial_2_last_name=
+   speed_dial_2_uri=
+   speed_dial_3_first_name=
+   speed_dial_3_last_name=
+   speed_dial_3_uri=
+   speed_dial_4_first_name=
+   speed_dial_4_last_name=
+   speed_dial_4_uri=
+
+[admin]
+
+###########################################################################
+## Global admin parameters
+## Binary polling timer : 10 min - 65535 min (default 480 min)
+## Config polling timer : 5 min - 65535 min (default 60 min)
+###########################################################################
+
+   binary_polling_timer=480
+   config_polling_timer=60
+   disable_pc_port=0
+   activate_vlan_filter=0

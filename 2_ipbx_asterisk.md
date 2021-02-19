@@ -523,7 +523,7 @@ Le plan de numérotation est terminé. Les comptes SIP ont été créés. On peu
 
 <a name="problematique_traversee_nat"></a>**(5)** : Odin Gremaud, *Introduction* **In** : *La traversée de NAT en VoIP SIP*, NEXCOM Systems, p.1, 20 juin 2012, Disponible sur : https://www.nexcom.fr/wp-content/uploads/whitepapers/bcp_nat_traversal.pdf.
 
-<a name="alaw_ulaw_alcatel"></a>**(6)** : Alcaltel-Lucent, *Caractéristiques audio* **In** : *Téléphones Alcatel-Lucent IP Touch 4008/4018 Extended Edition*, p.2, 2010, Disponible sur : https://www.bureautique-communication.fr/fileuploader/download/download/?d=0&file=custom%2Fupload%2F1%2F6%2F16590.pdf.
+<a name="alaw_ulaw_alcatel"></a>**(6)** : Alcatel-Lucent, *Caractéristiques audio* **In** : *Téléphones Alcatel-Lucent IP Touch 4008/4018 Extended Edition*, p.2, 2010, Disponible sur : https://www.bureautique-communication.fr/fileuploader/download/download/?d=0&file=custom%2Fupload%2F1%2F6%2F16590.pdf.
 
 <a name="alaw_ulaw_geo"></a>**(7)** : Wikipédia, *G.711*, 17 juillet 2017, Disponible sur : https://fr.wikipedia.org/wiki/G.711.
 

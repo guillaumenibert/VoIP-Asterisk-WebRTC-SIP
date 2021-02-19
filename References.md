@@ -42,7 +42,7 @@ Encadrant : Dr. Ahmed Lounis**
 
 <a name="problematique_traversee_nat"></a>**(5)** : Odin Gremaud, *Introduction* **In** : *La traversée de NAT en VoIP SIP*, NEXCOM Systems, p.1, 20 juin 2012, Disponible sur : https://www.nexcom.fr/wp-content/uploads/whitepapers/bcp_nat_traversal.pdf.
 
-<a name="alaw_ulaw_alcatel"></a>**(6)** : Alcaltel-Lucent, *Caractéristiques audio* **In** : *Téléphones Alcatel-Lucent IP Touch 4008/4018 Extended Edition*, p.2, 2010, Disponible sur : https://www.bureautique-communication.fr/fileuploader/download/download/?d=0&file=custom%2Fupload%2F1%2F6%2F16590.pdf.
+<a name="alaw_ulaw_alcatel"></a>**(6)** : Alcatel-Lucent, *Caractéristiques audio* **In** : *Téléphones Alcatel-Lucent IP Touch 4008/4018 Extended Edition*, p.2, 2010, Disponible sur : https://www.bureautique-communication.fr/fileuploader/download/download/?d=0&file=custom%2Fupload%2F1%2F6%2F16590.pdf.
 
 <a name="alaw_ulaw_geo"></a>**(7)** : Wikipédia, *G.711*, 17 juillet 2017, Disponible sur : https://fr.wikipedia.org/wiki/G.711.
 
@@ -55,3 +55,9 @@ Encadrant : Dr. Ahmed Lounis**
 <a name="ecdsa"></a>**(11)** : SECTIGO Store, *ECDSA vs RSA: Everything You Need to Know*, 9 juin 2020, Disponible sur : https://sectigostore.com/blog/ecdsa-vs-rsa-everything-you-need-to-know/.
 
 <a name="ecdsa_anssi"></a>**(12)** : Agence nationale de la sécurité des systèmes d'information, *Logarithme discret dans les courbes elliptiques définies sur GF(p)* **In** : *Référentiel Général de Sécurité version 2.0 - Annexe B1*, p.19-20, 21 février 2014, Disponible sur : https://www.ssi.gouv.fr/uploads/2014/11/RGS_v-2-0_B1.pdf.
+
+<div align="center">
+
+### Toutes les références ont été consultées le 12 février 2021.
+
+</div>

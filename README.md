@@ -22,9 +22,9 @@ Encadrant : Dr. Ahmed Lounis**
 
 <br />
 
-**Rapport PDF** : <a href="raw/main/TZ%20-%20Guillaume%20Nibert%20-%20Rapport%20-%20Mise%20en%20place%20d'une%20communication%20entre%20un%20Raspberry%20Pi%20et%20un%20t%C3%A9l%C3%A9phone%20IP.pdf" download target="_blank">Télécharger</a>
+**Rapport PDF** : <a href="../../raw/main/TZ%20-%20Guillaume%20Nibert%20-%20Rapport%20-%20Mise%20en%20place%20d'une%20communication%20entre%20un%20Raspberry%20Pi%20et%20un%20t%C3%A9l%C3%A9phone%20IP.pdf" download target="_blank">Télécharger</a>
 
-**Présentation PDF** : <a href="TZ%20-%20Guillaume%20Nibert%20-%20Pr%C3%A9sentation%20-%20Mise%20en%20place%20d'une%20communication%20entre%20un%20Raspberry%20Pi%20et%20un%20t%C3%A9l%C3%A9phone%20IP.pdf" download target="_blank">Télécharger</a>
+**Présentation PDF** : <a href="../../raw/main/TZ%20-%20Guillaume%20Nibert%20-%20Pr%C3%A9sentation%20-%20Mise%20en%20place%20d'une%20communication%20entre%20un%20Raspberry%20Pi%20et%20un%20t%C3%A9l%C3%A9phone%20IP.pdf" download target="_blank">Télécharger</a>
 
 Les annexes sont uniquement disponibles dans le rapport.
 

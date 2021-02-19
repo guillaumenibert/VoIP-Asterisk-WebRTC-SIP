@@ -12,6 +12,8 @@ Encadrant : Dr. Ahmed Lounis**
 
 <br />
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 ---
 
 <br />
@@ -70,3 +72,5 @@ Ce rapport détaille l’architecture du système ainsi que la mise en place de 
 ## [Sigles](Sigles.md)
 
 ## [Références](References.md)
+
+## [Licences utilisées](licences_utilisees.md)

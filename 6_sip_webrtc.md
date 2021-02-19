@@ -4,7 +4,7 @@
 <br>
 <br>
 
-# AI14 - TZ - Mise en place d'une communication VoIP entre un Raspberry Pi et un téléphone IP
+# TZ - Mise en place d'une communication VoIP entre un Raspberry Pi et un téléphone IP
 
 
 **Guillaume Nibert  

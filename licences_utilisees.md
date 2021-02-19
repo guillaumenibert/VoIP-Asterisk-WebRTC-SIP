@@ -20,7 +20,7 @@ Des éléments du projet sont basés sur d'autres projets opensources. Ci-dessou
 ## `sipconfig-reynoud.txt`
 
 **Créateur** : Florian Duraffourg.  
-**Fichier concerné** : https://github.com/fduraffourg/utils/blob/master/iptouch/sipconfig-reynoud.txt  
+**Fichier concerné** : https://github.com/fduraffourg/utils/blob/master/iptouch/sipconfig-reynoud.txt.  
 **Dépôt GitHub** : https://github.com/fduraffourg/utils/.  
 
 **Licence** :

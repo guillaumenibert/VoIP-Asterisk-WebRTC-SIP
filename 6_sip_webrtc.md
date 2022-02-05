@@ -1,115 +1,138 @@
 <div align="center">
 <br>
-<img src="https://www.utc.fr/wp-content/uploads/sites/28/2019/05/SU-UTC18-70.svg" alt="Université de Technologie de Compiègne" width="400">
+<img src="https://www.utc.fr/wp-content/uploads/sites/28/2019/05/SU-UTC18-70.svg" alt="University of Technology of Compiègne" width="400">
 <br>
 <br>
 
-# TZ - Mise en place d'une communication VoIP entre un Raspberry Pi et un téléphone IP
-
+# Setting up a VoIP communication between a Raspberry Pi and an IP phone using an Asterisk IP PBX server
 
 **Guillaume Nibert  
-Encadrant : Dr. Ahmed Lounis**
+Supervisor: [Dr. Ahmed Lounis](https://www.hds.utc.fr/~lounisah/dokuwiki/)**
 
 </div>
 
-## [Contexte](README.md)
+## [Context](README.md)
 
-## [1. Protocole SIP et communication VoIP](1_sip_voip.md)
+## [1. SIP protocol and VoIP communication](1_sip_voip.md)
 
-## [2. Mise en place d'un serveur PABX IP Asterisk](2_ipbx_asterisk.md)
+## [2. Implementation of an Asterisk IP PBX server](2_ipbx_asterisk.md)
 
-## [3. Installation et configuration d'un client SIP sur le Raspberry Pi](3_install_client_sip_rpi)
+## [3. Installation and configuration of a SIP client on the Raspberry Pi](3_install_client_sip_rpi)
 
-## [4. Configuration du téléphone IP](4_config_alcatel.md)
+## [4. IP phone configuration](4_config_alcatel.md)
 
-## [5. Tests de communication](5_tests_com_sip.md)
+## [5. Communication tests](5_tests_com_sip.md)
 
-## 6. Client SIP JavaScript utilisant WebRTC
+## 6. JavaScript SIP client using WebRTC
 
-L’établissement de la communication (SIP) ainsi que la communication en elle-même (RTP) fonctionnent correctement. Le développement d’un programme client SIP en JavaScript va nécessiter des modifications de notre environnement. En effet, nous allons donc passer un appel depuis un navigateur web supportant JavaScript vers un autre appareil (ayant un client SIP JavaScript ou non). Avant de commencer la mise en place. Il est nécessaire de comprendre ce que sont les API WebRTC, WebSocket.
+<p style="text-align: justify; text-indent: 3em;">
+The establishment of the communication (SIP) as well as the communication itself (RTP) works correctly. The development of a SIP client program in JavaScript will require modifications to our environment. Indeed, we are going to make a call from a web browser supporting JavaScript to another device (having a JavaScript SIP client or not). Before starting the implementation. It is necessary to understand what the WebRTC, WebSocket APIs are.
+</p>
 
 ### WebRTC & WebSocket
 
-L’API WebRTC (*Web Real-Time Communication*) est une interface logicielle dont le but est de mettre en relation deux périphériques afin qu’ils puissent communiquer directement. Cette mise en relation nécessite d’ouvrir un canal de communication entre un client et un serveur : la technologie qui permet de répondre à cela est l’API WebSocket.
-
-Concrètement, l’établissement d’une connexion fonctionne similairement à SIP. Ci-dessous, voici un schéma explicatif issu de Wikipédia.
+<p style="text-align: justify; text-indent: 3em;">
+    The WebRTC (<i>Web Real-Time Communication</i>) API is a software interface whose purpose is to link two devices so that they can communicate directly. This connection requires opening a communication channel between a client and a server: the technology that allows this is the WebSocket API. 
+</p>
+<p style="text-align: justify; text-indent: 3em;">
+In concrete terms, establishing a connection works in a similar way to SIP. Below is an explanatory diagram from Wikipedia.
+</p>
 
 <div align="center">
-<img src="figures/figure17_webrtc.png" alt="Figure 17 - Établissement d'une connexion entre deux clients utilisant WebRTC">
+<img src="figures/figures_en/figure17_webrtc.png" alt="Figure 17 - Establishing a connection between two clients">
 
-*(Figure 17 - Établissement d'une connexion entre deux clients utilisant WebRTC)*
+<p style="text-align: center;">
+    <i>(Figure 17 - Establishing a connection between two clients)</i><br>
+<span style="font-size: 15px;">Attribution: <a href="https://commons.wikimedia.org/wiki/File:Etablissement_d%27une_connexion_par_WebRTC.svg" hreflang="en" target="_blank">adapted from the original work of Feyd-Aran</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.fr" hreflang="fr" target="_blank">CC BY-SA 3.0</a>, via Wikimedia Commons</span>
+</p>
 
 </div>
 
-“
- - 1 : A demande au serveur une connexion avec B.
- - 2 : Le serveur relaie la demande de A à B.
- - 3 : Si B accepte, il envoie une demande de connexion à A.
- - 4 : Le serveur relaie la demande à A.
- - 5 et 6 : Les PeerConnection bidirectionnelles sont établies.
- 
- ” - [Wikipédia](https://fr.wikipedia.org/wiki/WebRTC#Description_g%C3%A9n%C3%A9rale_de_la_norme).
+>  - 1: A asks the server for a connection with B.
+>  - 2: The server relays the request from A to B.
+>  - 3: If B accepts, it sends a connection request to A.
+>  - 4: The server relays the request to A.
+>  - 5 and 6: Bidirectional PeerConnection is established.
+<p style="text-align: right;">
+    — <a href="https://fr.wikipedia.org/wiki/WebRTC#Description_g%C3%A9n%C3%A9rale_de_la_norme" hreflang="fr" target="_blank"><i>Wikipédia</i></a>
+</p>
 
- Les PeerConnection correspondent dans notre cas au flux RTP entre les deux clients. Une fois la communication établie, comme pour SIP la communication entre les deux clients est directe et les flux médias ne passent pas par le serveur web d’application.
+ <p style="text-align: justify; text-indent: 3em;">
+The PeerConnection corresponds in our case to the RTP flow between the two clients. Once the communication is established, as with SIP, the communication between the two clients is direct and the media flows do not pass through the application web server.
+</p>
+<p style="text-align: justify; text-indent: 3em;">
+Let's imagine now:
+</p>
 
-Imaginons maintenant :
- - client A : Raspberry Pi, disposant du navigateur web Mozilla Firefox prenant en charge WebRTC.
- - client B : Alcatel IP Touch 4018 EE, ne prenant pas en charge WebRTC.
+  - Client A: Raspberry Pi, with Mozilla Firefox web browser supporting WebRTC.
+ - Client B: Alcatel IP Touch 4018 EE, not supporting WebRTC.
 
-***Comment faire communiquer les deux points de terminaison ?***
-
-On ne peut pas faire en sorte que le téléphone Alcatel puisse prendre en charge WebRTC, c’est du matériel propriétaire, le code source est fermé, et même si cela était possible, cela prendrait nécessiterait une durée de travail non négligeable afin de comprendre comment le logiciel fonctionne, programmer de nouveaux firmwares et configurer le système.
-
-En revanche, côté Raspberry Pi, il est possible d’utiliser WebRTC et SIP en encapsulant le protocole SIP dans une WebSocket. Cela est défini dans la [RFC 7118](https://tools.ietf.org/html/rfc7118). Il faut également un serveur capable de gérer WebRTC/SIP pour le client A et seulement SIP pour le client B. Le serveur Asterisk prend en charge WebRTC avec SIP. Il faut donc apporter des modifications pour que le serveur puisse prendre en charge WebRTC.
+<p style="text-align: justify; text-indent: 3em;">
+    <b><i>How can the two endpoints be made to communicate?</i></b>
+</p>
+<p style="text-align: justify; text-indent: 3em;">
+The Alcatel phone cannot support WebRTC, it is proprietary hardware, the source code is closed.
+</p>
+<p style="text-align: justify; text-indent: 3em;">
+    On the Raspberry Pi side, however, it is possible to use WebRTC and SIP by encapsulating the SIP protocol in a WebSocket. This is defined in <a href="https://tools.ietf.org/html/rfc7118" hreflang="en" target="_blank">RFC 7118</a> and requires a server that can handle WebRTC/SIP for client A and only SIP for client B. The Asterisk server supports WebRTC with SIP. Therefore, modifications are required to make the server capable of supporting WebRTC. 
+</p>
 
 <div align="center">
-<img src="figures/figure18_webrtc_sip_infra.png" alt="Figure 18 - Raspberry Pi appelle Alcatel IP Touch depuis un client WebRTC">
+<img src="figures/figures_en/figure18_webrtc_sip_infra.png" alt="Figure 18 - Raspberry Pi calls Alcatel IP Touch from a WebRTC client">
 
-*(Figure 18 - Raspberry Pi appelle Alcatel IP Touch depuis un client WebRTC)*
+*(Figure 18 - Raspberry Pi calls Alcatel IP Touch from a WebRTC client)*
 
 </div>
 
-Au niveau du client Raspberry Pi, les navigateurs web tels que Mozilla Firefox, Safari ou encore ceux basés sur Chromium implémentent nativement l’API WebRTC. Nous utiliserons Mozilla Firefox comme client utilisant WebRTC.
+<p style="text-align: justify; text-indent: 3em;">
+    At the Raspberry Pi client level, web browsers such as Mozilla Firefox, Safari or those based on Chromium natively implement the WebRTC API. In this project, Mozilla Firefox will be used as a client using WebRTC.
+</p>
 
-### Configuration du serveur Asterisk pour prendre en charge l’API WebRTC
+### Configuring the Asterisk server to support the WebRTC API
 
-Afin d’améliorer la sécurité entre le client WebRTC et le serveur Asterisk, nous allons mettre en place une web socket sécurisée (WSS) via TLS. Nous allons donc dans un premier temps générer un certificat auto signé.
+In order to improve the security between the WebRTC client and the Asterisk server, a secure web socket (WSS) via TLS will be set up. We will therefore first generate a self-signed certificate.
 
-#### Génération d’un certificat SSL/TLS auto signé
+#### Generating a self-signed SSL/TLS certificate
 
-Dans un but d’amélioration de la sécurité et de modernisation, nous adoptons un certificat généré avec des algorithmes ECDSA, bien plus performants que les algorithmes RSA classiques **([11](#ecdsa))**. Nous allons utiliser l’algorithme ECDSA P-521, recommandé par l’ANSSI **([12](#ecdsa_anssi))** et compatible avec Mozilla Firefox.
-Pour réaliser cette opération, il faut avoir au préalable démarré la machine virtuelle Debian et l’outil OpenSSL.
+<p style="text-align: justify; text-indent: 3em;">
+    In order to improve security and modernise, we adopt a certificate generated with ECDSA algorithms, which are much more efficient than the classic RSA algorithms <b>(<a style="text-decoration: none;" href="#ecdsa" name="ecdsa_text">11</a>)</b>. We will use the ECDSA P-521 algorithm, recommended by the ANSSI (French National Agency for the Security of Information Systems) <b>(<a style="text-decoration: none;" href="#ecdsa_anssi" name="ecdsa_anssi_text">12</a>)</b> and compatible with Mozilla Firefox.
+</p>
+<p style="text-align: justify; text-indent: 3em;">
+    To perform this operation, you must first have started the Debian virtual machine and have the OpenSSL tool.
+</p>
 
 1. Se connecter en SSH à la machine `asterisktz`.
 
-```bash
-# ssh login@adresse_ip_vm -p 22
-ssh asterisktz@192.168.1.80 -p 22
-```
+1. Connect via SSH to the `asterisktz` machine.
 
-2. Créer les dossiers dans lesquels seront stockés le certificat de l’Autorité de Certification, appelé certificat racine (***ca***), le certificat associé à l’IP *192.168.1.80* (***certs***) et le fichier de demande de signature de certificat à l’autorité (***csr***).
+<pre>
+<span style="color:green;"># ssh login@vm_ip_address -p 22</span>
+ssh asterisktz@192.168.1.80 -p 22
+</pre>
+
+2. Create the folders in which the Certificate Authority's certificate, called the root certificate (***ca***), the certificate associated with the IP *192.168.1.80* (***certs***) and the certificate signing request file to the authority (***csr***) are stored.
 
 ```bash
 mkdir ca && mkdir certs && mkdir csr
 ```
 
-3. Création des certificats.
+3. Creation of certificates.
 
-Création de la clef privée du certificat racine (autorité de certification)
+Create the private key of the root certificate (certification authority)
 
 ```bash
 openssl ecparam -genkey -name secp521r1 -out ca/TZVoIP-Root-CA.key
 ```
 
-Génération du certificat racine à partir de sa clef privée.
+Generate the root certificate from its private key
 
 ```bash
 openssl req -x509 -new -nodes -key ca/TZVoIP-Root-CA.key -sha384 -days 3650 -utf8 -out ca/TZVoIP-Root-CA.crt
 ```
 
-*Informations à renseigner*
+***Information to be filled in***:
 
-```
+<pre>
 You are about to be asked to enter information that will be incorporated
 into your certificate request.
 What you are about to enter is what is called a Distinguished Name or a DN.
@@ -117,24 +140,24 @@ There are quite a few fields but you can leave some blank
 For some fields there will be a default value,
 If you enter '.', the field will be left blank.
 -----
-Country Name (2 letter code) [AU]:FR
-State or Province Name (full name) [Some-State]:Hauts-de-France
-Locality Name (eg, city) []:Compiègne
-Organization Name (eg, company) [Internet Widgits Pty Ltd]:Université de Technologie de Compiègne
-Organizational Unit Name (eg, section) []:TZ VoIP
-Common Name (e.g. server FQDN or YOUR name) []:TZ VoIP Root
-Email Address []:guillaume.nibert@etu.utc.fr
-```
+Country Name (2 letter code) [AU]:<b>FR</b>
+State or Province Name (full name) [Some-State]:<b>Hauts-de-France</b>
+Locality Name (eg, city) []:<b>Compiègne</b>
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:<b>Université de Technologie de Compiègne</b>
+Organizational Unit Name (eg, section) []:<b>TZ VoIP</b>
+Common Name (e.g. server FQDN or YOUR name) []:<b>TZ VoIP Root</b>
+Email Address []:<b>guillaume.nibert@etu.utc.fr</b>
+</pre>
 
-Génération de la clé privée du certificat de l’IP et de son fichier de demande de signature.
+Generate the private key of the IP address certificate and its signature request file.
 
 ```bash
 openssl req -new -sha384 -nodes -utf8 -out csr/asterisktz.csr -newkey ec:<(openssl ecparam -name secp521r1) -keyout certs/asterisktz.key
 ```
 
-*Informations à renseigner*
+***Information to be filled in***:
 
-```
+<pre>
 Generating an EC private key
 writing new private key to 'certs/asterisktz.key'
 -----
@@ -145,27 +168,27 @@ There are quite a few fields but you can leave some blank
 For some fields there will be a default value,
 If you enter '.', the field will be left blank.
 -----
-Country Name (2 letter code) [AU]:FR
-State or Province Name (full name) [Some-State]:Hauts-de-France
-Locality Name (eg, city) []:Compiègne
-Organization Name (eg, company) [Internet Widgits Pty Ltd]:Université de Technologie de Compiègne
-Organizational Unit Name (eg, section) []:TZ VoIP
-Common Name (e.g. server FQDN or YOUR name) []:192.168.1.80
-Email Address []:guillaume.nibert@etu.utc.fr
+Country Name (2 letter code) [AU]:<b>FR</b>
+State or Province Name (full name) [Some-State]:<b>Hauts-de-France</b>
+Locality Name (eg, city) []:<b>Compiègne</b>
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:<b>Université de Technologie de Compiègne</b>
+Organizational Unit Name (eg, section) []:<b>TZ VoIP</b>
+Common Name (e.g. server FQDN or YOUR name) []:<b>192.168.1.80</b>
+Email Address []:<b>guillaume.nibert@etu.utc.fr</b>
 
 Please enter the following 'extra' attributes
 to be sent with your certificate request
 A challenge password []:
 An optional company name []:
-```
+</pre>
 
-Création du fichier contenant les paramètres du certificat à créer.
+Create the file containing the parameters of the certificate to be created.
 
 ```bash
 nano csr/openssl-v3.cnf
 ```
 
-*`csr/openssl-v3.cnf`*
+***csr/openssl-v3.cnf***
 
 ```
 authorityKeyIdentifier=keyid,issuer
@@ -177,39 +200,41 @@ subjectAltName = @alt_names
 IP.1 = 192.168.1.80
 ```
 
-Génération du certificat et signature auprès de l’autorité de certification.
+Generate the certificate and signature with the certification authority.
 
 ```bash
 openssl x509 -req -in csr/asterisktz.csr -CA ca/TZVoIP-Root-CA.crt -CAkey ca/TZVoIP-Root-CA.key -CAcreateserial -out certs/asterisktz.crt -days 365 -sha384 -extfile csr/openssl-v3.cnf
 ```
 
-Fabrication du certificat full-chain.
+Produce the full-chain certificate.
 
 ```bash
 cat certs/asterisktz.crt certs/asterisktz.key > certs/asterisktz.pem
 ```
 
-Modification des droits.
+Change the permissions.
 
 ```bash
 chmod a+r certs/asterisktz.pem
 ```
 
-Le certificat auto signé a été créé. Pour plus de détails concernant le processus de certification dans le cas d’un certificat non autosigné, consulter : https://letsencrypt.org/fr/how-it-works/. Passons à l’activation du serveur HTTP intégré à Asterisk.
+<p style="text-align: justify; text-indent: 3em;">
+    The self-signed certificate has been created. For more details about the certification process for a non-self-signed certificate, see:  <a href="https://letsencrypt.org/how-it-works/" hreflang="en" target="_blank">https://letsencrypt.org/how-it-works/</a>. Let's move on to enabling the HTTP server built into Asterisk.
+</p>
 
-#### Activation du serveur HTTP d’Asterisk
+#### Enabling the Asterisk HTTP server
 
-Sur la même machine :
+On the same machine:
 
-1. Éditer le fichier de configuration du serveur HTTP intégré à Asterisk.
+1. Edit the configuration file for Asterisk's built-in HTTP server.
 
 ```bash
 sudo nano /etc/asterisk/http.conf
 ```
 
-2. Remplacer le contenu par :
+2. Replace the contents with:
 
-*`/etc/asterisk/http.conf`*
+***/etc/asterisk/http.conf***
 
 ```
 [general]
@@ -221,18 +246,21 @@ tlsprivatekey=/home/asterisktz/certs/asterisktz.key
 enablestatic=no
 sessionlimit=1000
 ```
-
-Ici on n’autorise que des connexions chiffrées (***tlsenable=yes***) sur le port 8089. Les connexions non chiffrées seraient activables en passant ***enabled*** à ***yes*** sur le port 8088.
-
-Redémarrer le service Asterisk pour activer le serveur HTTP intégré.
+<p style="text-align: justify; text-indent: 3em;">
+    Here only encrypted connections (<b><i>tlsenable=yes</i></b>) are allowed on port 8089. Unencrypted connections would be <b><i>enabled</i></b> to <b><i>yes</i></b> on port 8088.
+</p>
+<p style="text-align: justify; text-indent: 3em;">
+Restart the Asterisk service to enable the built-in HTTP server.
+</p>
 
 ```bash
 sudo systemctl restart asterisk
 ```
+<p style="text-align: justify;">
+To check that the HTTP server is enabled, simply type the command <b><i><code>sudo asterisk -rvvv</code></i></b>, then the command <b><i><code>http show status</code></i></b>. It should return this:
+</p>
 
-Pour vérifier l’activation du serveur HTTP, il suffit de taper la commande ***`sudo asterisk -rvvv`***, puis la commande ***`http show status`***. Elle devrait renvoyer ceci :
-
-```
+<pre>
 asterisktz*CLI> http show status
 HTTP Server Status:
 Prefix:
@@ -244,288 +272,306 @@ Enabled URI's:
 /phoneprov/... => Asterisk HTTP Phone Provisioning Tool
 /metrics/... => Prometheus Metrics URI
 /ari/... => Asterisk RESTful API
-/ws => Asterisk HTTP WebSocket
+<b><span style="color:green;">/ws => Asterisk HTTP WebSocket</span></b>
 
 asterisktz*CLI>
-```
+</pre>
+<p style="text-align: justify;">
+    The element we are interested in: the use of WebSocket for SIP (<code>/ws</code>)
+    Let's move on to the configuration of <b><i><code>pjsip.conf</code></i></b> and <b><i><code>extensions.conf</code></i></b> to take into account both WebRTC and SIP. We have based ourselves on the <i>Browser Phone</i> project and have adapted the configuration files in question. The files are available in the <code>asterisk_webrtc</code> directory of the Git repository.
+</p>
 
-L’élément qui nous intéresse : l’utilisation du WebSocket pour SIP (`/ws`)
-Passons maintenant à la configuration de ***`pjsip.conf`*** et de ***`extensions.conf`*** pour prendre en compte à la fois WebRTC et SIP. Nous nous sommes basés sur le projet *Browser Phone* et avons adapté les fichiers de configurations en question. Les fichiers sont disponibles dans le répertoire `asterisk_webrtc` du dépôt Git.
+#### Editing pjsip.conf to support WebRTC
 
-#### Modification de pjsip.conf pour prendre en charge WebRTC
-
-1. Éditer le fichier de configuration `pjsip.conf`.
+1. Edit the `pjsip.conf` configuration file. 
 
 ```bash
 sudo nano /etc/asterisk/pjsip.conf
 ```
 
-2. Remplacer le contenu par :
+2. Replace content with:
 
 *`/etc/asterisk/pjsip.conf`*
 
-```conf
+<pre>
+conf
 [global]
-max_forwards=70
-user_agent=AsteriskTZ
-default_realm=192.168.1.80
-keep_alive_interval=300
- 
-; == Transports
- 
+<span style="color:dodgerblue;">max_forwards</span>=70
+<span style="color:dodgerblue;">user_agent</span>=AsteriskTZ
+<span style="color:dodgerblue;">default_realm</span>=192.168.1.80
+<span style="color:dodgerblue;">keep_alive_interval</span>=300
+
+<span style="color:green;">; == Transport</span>
+
 [udp_transport]
-type=transport
-protocol=udp
-bind=0.0.0.0
-tos=af42
-cos=3
- 
+<span style="color:dodgerblue;">type</span>=transport
+<span style="color:dodgerblue;">protocol</span>=udp
+<span style="color:dodgerblue;">bind</span>=0.0.0.0
+<span style="color:dodgerblue;">tos</span>=af42
+<span style="color:dodgerblue;">cos</span>=3
+
 [wss_transport]
-type=transport
-protocol=wss
-bind=0.0.0.0
- 
+<span style="color:dodgerblue;">type</span>=transport
+<span style="color:dodgerblue;">protocol</span>=wss
+<span style="color:dodgerblue;">bind</span>=0.0.0.0
+
 [tcp_transport]
-type=transport
-protocol=tcp
-bind=0.0.0.0
- 
+<span style="color:dodgerblue;">type</span>=transport
+<span style="color:dodgerblue;">protocol</span>=tcp
+<span style="color:dodgerblue;">bind</span>=0.0.0.0
+
 [tls_transport]
-type=transport
-protocol=tls
-bind=0.0.0.0
-cert_file=/home/asterisk/certs/asterisktz.crt
-priv_key_file=/home/asterisk/certs/asterisktz.key
-cipher=ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
-method=tlsv1_2
- 
-; == ACL
- 
-[acl]    ; Les communications sont uniquement autorisées dans réseaux locaux de classes A, 
-type=acl ; B et C.
-deny=0.0.0.0/0.0.0.0
-permit=10.0.0.0/255.0.0.0
-permit=172.16.0.0/255.240.0.0
-permit=192.168.0.0/255.255.0.0
- 
-; Modèles
- 
+<span style="color:dodgerblue;">type</span>=transport
+<span style="color:dodgerblue;">protocol</span>=tls
+<span style="color:dodgerblue;">bind</span>=0.0.0.0
+<span style="color:dodgerblue;">cert_file</span>=/home/asterisk/certs/asterisktz.crt
+<span style="color:dodgerblue;">priv_key_file</span>=/home/asterisk/certs/asterisktz.key
+<span style="color:dodgerblue;">cipher</span>=ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384;
+<span style="color:dodgerblue;">method</span>=tlsv1_2
+
+<span style="color:green;">; == ACL</span>
+
+[acl]    <span style="color:green;">; Communications are only allowed in Class A, B and C local</span>
+<span style="color:dodgerblue;">type</span>=acl <span style="color:green;">; networks.</span>
+<span style="color:dodgerblue;">deny</span>=0.0.0.0/0.0.0.0
+<span style="color:dodgerblue;">permit</span>=10.0.0.0/255.0.0.0
+<span style="color:dodgerblue;">permit</span>=172.16.0.0/255.240.0.0
+<span style="color:dodgerblue;">permit</span>=192.168.0.0/255.255.0.0
+
+<span style="color:green;">; Templates</span>
+
 [single_aor](!)
-max_contacts=1
-qualify_frequency=120
-remove_existing=yes
- 
+<span style="color:dodgerblue;">max_contacts</span>=1
+<span style="color:dodgerblue;">qualify_frequency</span>=120
+<span style="color:dodgerblue;">remove_existing</span>=yes
+
 [userpass_auth](!)
-auth_type=userpass
- 
+<span style="color:dodgerblue;">auth_type</span>=userpass
+
 [basic_endpoint](!)
-moh_suggest=default
-context=from-extensions
-inband_progress=no
-rtp_timeout=120
-message_context=textmessages
-allow_subscribe=yes
-subscribe_context=subscriptions
-direct_media=yes
-dtmf_mode=rfc4733
-device_state_busy_at=1
-disallow=all
- 
+<span style="color:dodgerblue;">moh_suggest</span>=default
+<span style="color:dodgerblue;">context</span>=from-extensions
+<span style="color:dodgerblue;">inband_progress</span>=no
+<span style="color:dodgerblue;">rtp_timeout</span>=120
+<span style="color:dodgerblue;">message_context</span>=textmessages
+<span style="color:dodgerblue;">allow_subscribe</span>=yes
+<span style="color:dodgerblue;">subscribe_context</span>=subscriptions
+<span style="color:dodgerblue;">direct_media</span>=yes
+<span style="color:dodgerblue;">dtmf_mode</span>=rfc4733
+<span style="color:dodgerblue;">device_state_busy_at</span>=1
+<span style="color:dodgerblue;">disallow</span>=all
+
 [phone_endpoint](!)
-allow=ulaw,alaw
- 
+<span style="color:dodgerblue;">allow</span>=ulaw,alaw
+
 [webrtc_endpoint](!)
-transport=wss_transport
-allow=ulaw,alaw
-dtls_auto_generate_cert=yes
-webrtc=yes
- 
-; Utilisateurs
- 
+<span style="color:dodgerblue;">transport</span>=wss_transport
+<span style="color:dodgerblue;">allow</span>=ulaw,alaw
+<span style="color:dodgerblue;">dtls_auto_generate_cert</span>=yes
+<span style="color:dodgerblue;">webrtc</span>=yes
+
+<span style="color:green;">; Users</span>
+
 [alcatel](basic_endpoint,phone_endpoint)
-type=endpoint
-callerid="Alcatel IP Touch" <5001>
-auth=alcatel
-aors=alcatel
+<span style="color:dodgerblue;">type</span>=endpoint
+<span style="color:dodgerblue;">callerid</span>=<span style="color:chocolate;">"Alcatel IP Touch"</span> <5001>
+<span style="color:dodgerblue;">auth</span>=alcatel
+<span style="color:dodgerblue;">aors</span>=alcatel
 [alcatel](single_aor)
-type=aor
+<span style="color:dodgerblue;">type</span>=aor
 [alcatel](userpass_auth)
-type=auth
-username=alcatel
-password=11111111
- 
+<span style="color:dodgerblue;">type</span>=auth
+<span style="color:dodgerblue;">username</span>=alcatel
+<span style="color:dodgerblue;">password</span>=11111111
+
 [rpi](basic_endpoint,webrtc_endpoint)
-type=endpoint
-callerid="Raspberry Pi" <5002>
-auth=rpi
-aors=rpi
+<span style="color:dodgerblue;">type</span>=endpoint
+<span style="color:dodgerblue;">callerid</span>=<span style="color:chocolate;">"Raspberry Pi"</span> <5002>
+<span style="color:dodgerblue;">auth</span>=rpi
+<span style="color:dodgerblue;">aors</span>=rpi
 [rpi](single_aor)
-type=aor
+<span style="color:dodgerblue;">type</span>=aor
 [rpi](userpass_auth)
-type=auth
-username=rpi
-password=22222222
- 
+<span style="color:dodgerblue;">type</span>=auth
+<span style="color:dodgerblue;">username</span>=rpi
+<span style="color:dodgerblue;">password</span>=22222222
+
 [guillaume](basic_endpoint,webrtc_endpoint)
-type=endpoint
-callerid="Guillaume Nibert" <5003>
-auth=guillaume
-aors=guillaume
+<span style="color:dodgerblue;">type</span>=endpoint
+<span style="color:dodgerblue;">callerid</span>=<span style="color:chocolate;">"Guillaume Nibert"</span> <5003>
+<span style="color:dodgerblue;">auth</span>=guillaume
+<span style="color:dodgerblue;">aors</span>=guillaume
 [guillaume](single_aor)
-type=aor
-mailboxes=guillaume@default
+<span style="color:dodgerblue;">type</span>=aor
+<span style="color:dodgerblue;">mailboxes</span>=guillaume@default
 [guillaume](userpass_auth)
-type=auth
-username=guillaume
-password=33333333
-```
+<span style="color:dodgerblue;">type</span>=auth
+<span style="color:dodgerblue;">username</span>=guillaume
+<span style="color:dodgerblue;">password</span>=33333333
+</pre>
 
-Pour davantage de détails, se référer à la documentation de PJSIP : https://wiki.asterisk.org/wiki/display/AST/PJSIP+Configuration+Sections+and+Relationships.
+<p style="text-align: justify; text-indent: 3em;">
+For more details, please refer to the PJSIP documentation:<br><a href="https://wiki.asterisk.org/wiki/display/AST/PJSIP+Configuration+Sections+and+Relationships" hreflang="en" target="_blank">https://wiki.asterisk.org/wiki/display/AST/PJSIP+Configuration+Sections+and+Relationships</a>.
+</p>
 
-#### Modification de `extensions.conf` pour prendre en charge WebRTC
+#### Editing `extensions.conf` to support WebRTC
 
-3. Éditer le fichier de configuration `extensions.conf`.
+3. Edit the configuration file `extensions.conf`.
 
 ```bash
 sudo nano /etc/asterisk/extensions.conf
 ```
 
-4. Remplacer le contenu par :
+4. Replace the contents with:
 
 *`/etc/asterisk/extensions.conf`*
 
-```conf
+<pre>
+conf
 [general]
-static=yes
-writeprotect=yes
-priorityjumping=no
-autofallthrough=no
- 
+<span style="color:dodgerblue;">static</span>=yes
+<span style="color:dodgerblue;">writeprotect</span>=yes
+<span style="color:dodgerblue;">priorityjumping</span>=no
+<span style="color:dodgerblue;">autofallthrough</span>=no
+
 [globals]
-ATTENDED_TRANSFER_COMPLETE_SOUND=beep
- 
-[textmessages] ; Permet en plus d’envoyer du texte pour les clients WebRTC
-exten => 5002,1,Gosub(send-text,s,1(rpi))
-exten => 5003,1,Gosub(send-text,s,1(guillaume))
- 
-[subscriptions] ; Permet de connaître l’état d’un point de terminaison (en appel ou 
-exten => 5001,hint,PJSIP/alcatel ; disponible)
-exten => 5002,hint,PJSIP/rpi
-exten => 5003,hint,PJSIP/guillaume
- 
+<span style="color:dodgerblue;">ATTENDED_TRANSFER_COMPLETE_SOUND</span>=beep
+
+[textmessages] <span style="color:green;">; Allows you to send text for WebRTC clients</span>
+<span style="color:dodgerblue;">exten</span> => 5002,1,Gosub(send-text,s,1(rpi))
+<span style="color:dodgerblue;">exten</span> => 5003,1,Gosub(send-text,s,1(guillaume))
+
+[subscriptions] <span style="color:green;">; Allows to know the status of an endpoint (in call or</span>
+<span style="color:dodgerblue;">exten</span> => 5001,hint,PJSIP/alcatel <span style="color:green;">; available)</span>
+<span style="color:dodgerblue;">exten</span> => 5002,hint,PJSIP/rpi
+<span style="color:dodgerblue;">exten</span> => 5003,hint,PJSIP/guillaume
+
 [from-extensions]
-; Lorsqu’on appelle le 5000, on a de la musique
-exten => 5000,1,Gosub(moh,s,1)
-; Extensions
-exten => 5001,1,Gosub(dial-extension,s,1,(alcatel))
-exten => 5002,1,Gosub(dial-extension,s,1,(rpi))
-exten => 5003,1,Gosub(dial-extension,s,1,(guillaume))
-; Si on a autre chose que le 5000, 5001, 5002 ou 5003 alors c’est un faux numéro, donc on
-; raccroche
-exten => _[+*0-9].,1,NoOp(You called: ${EXTEN})
-exten => _[+*0-9].,n,Hangup(1)
- 
-exten => e,1,Hangup()
- 
-[moh] ; “fonction” pour la musique (cf. 5000). Rem : “fonction” est abusif, cela s'appelle
-; en réalité le contexte.
-exten => s,1,NoOp(Music On Hold)
-exten => s,n,Ringing()
-exten => s,n,Wait(2)
-exten => s,n,Answer()
-exten => s,n,Wait(1)
-exten => s,n,MusicOnHold()
- 
-[dial-extension] ; “fonction” pour appeler un point de terminaison.
-exten => s,1,NoOp(Calling: ${ARG1})
-exten => s,n,Set(JITTERBUFFER(adaptive)=default)
-exten => s,n,Dial(PJSIP/${ARG1},30)
-exten => s,n,Hangup()
- 
-exten => e,1,Hangup()
- 
-[send-text] ; “fonction” pour envoyer du texte.
-exten => s,1,NoOp(Sending Text To: ${ARG1} From: ${MESSAGE(from)})
-exten => s,n,Set(PEER=${CUT(CUT(CUT(MESSAGE(from),@,1),<,2),:,)})
-exten => s,n,Set(FROM=${SHELL(asterisk -rx 'pjsip show endpoint ${PEER}' | grep 'callerid ' | cut -d':' -f2- | sed 's/^\ *//' | tr -d '\n')})
-exten => s,n,Set(CALLERID_NUM=${CUT(CUT(FROM,<,1),<2)})
-exten => s,n,Set(FROM_SIP=${STRREPLACE(MESSAGE(from),<sip:${PEER}@,<sip:${CALLERID_NUM}@)})
-exten => s,n,MessageSend(pjsip:${ARG1},${FROM_SIP})
-exten => s,n,Hangup()
-```
+<span style="color:green;">; When you call 5000, you get music.</span>
+<span style="color:dodgerblue;">exten</span> => 5000,1,Gosub(moh,s,1)
+<span style="color:green;">; Extensions</span>
+<span style="color:dodgerblue;">exten</span> => 5001,1,Gosub(dial-extension,s,1,(alcatel))
+<span style="color:dodgerblue;">exten</span> => 5002,1,Gosub(dial-extension,s,1,(rpi))
+<span style="color:dodgerblue;">exten</span> => 5003,1,Gosub(dial-extension,s,1,(guillaume))
+<span style="color:green;">; If you have anything other than 5000, 5001, 5002 or 5003 then it is a</span>
+<span style="color:green;">; wrong number, so hang up.</span>
+<span style="color:dodgerblue;">exten</span> => _[+*0-9].,1,NoOp(You called: ${EXTEN})
+<span style="color:dodgerblue;">exten</span> => _[+*0-9].,n,Hangup(1)
 
-Pour davantage de détails, se référer à la documentation sur la configuration du plan de numérotation : 
-https://wiki.asterisk.org/wiki/display/AST/Contexts%2C+Extensions%2C+and+Priorities.
+<span style="color:dodgerblue;">exten</span> => e,1,Hangup()
 
-5. Redémarrer le service `asterisk`.
+[moh] ; <span style="color:green;">"function" for music (see 5000). Note: "function" is an abusive</span>
+<span style="color:green;">; term, it is actually called "context".</span>
+<span style="color:dodgerblue;">exten</span> => s,1,NoOp(Music On Hold)
+<span style="color:dodgerblue;">exten</span> => s,n,Ringing()
+<span style="color:dodgerblue;">exten</span> => s,n,Wait(2)
+<span style="color:dodgerblue;">exten</span> => s,n,Answer()
+<span style="color:dodgerblue;">exten</span> => s,n,Wait(1)
+<span style="color:dodgerblue;">exten</span> => s,n,MusicOnHold()
+
+[dial-extension] <span style="color:green;">; "function" to call an endpoint.</span>
+<span style="color:dodgerblue;">exten</span> => s,1,NoOp(Calling: ${ARG1})
+<span style="color:dodgerblue;">exten</span> => s,n,Set(JITTERBUFFER(adaptive)=default)
+<span style="color:dodgerblue;">exten</span> => s,n,Dial(PJSIP/${ARG1},30)
+<span style="color:dodgerblue;">exten</span> => s,n,Hangup()
+
+<span style="color:dodgerblue;">exten</span> => e,1,Hangup()
+
+[send-text] <span style="color:green;">; "function" to send text.</span>
+<span style="color:dodgerblue;">exten</span> => s,1,NoOp(Sending Text To: ${ARG1} From: ${MESSAGE(from)})
+<span style="color:dodgerblue;">exten</span> => s,n,Set(<span style="color:dodgerblue;">PEER</span>=${CUT(CUT(CUT(MESSAGE(from),@,1),<,2),:,)})
+<span style="color:dodgerblue;">exten</span> => s,n,Set(<span style="color:dodgerblue;">FROM</span>=${SHELL(asterisk -rx <span style="color:chocolate;">'pjsip show endpoint ${PEER}'</span> | grep <span style="color:chocolate;">'callerid '</span> | cut -d<span style="color:chocolate;">':'</span> -f2- | sed <span style="color:chocolate;">'s/^\ *//'</span> | tr -d <span style="color:chocolate;">'\n'</span>)})
+<span style="color:dodgerblue;">exten</span> => s,n,Set(<span style="color:dodgerblue;">CALLERID_NUM</span>=${CUT(CUT(FROM,<,1),<2)})
+<span style="color:dodgerblue;">exten</span> => s,n,Set(<span style="color:dodgerblue;">FROM_SIP</span>=${STRREPLACE(MESSAGE(from),&lt;sip:${PEER}@,&lt;sip:${CALLERID_NUM}@)})
+<span style="color:dodgerblue;">exten</span> => s,n,MessageSend(pjsip:${ARG1},${FROM_SIP})
+<span style="color:dodgerblue;">exten</span> => s,n,Hangup()
+</pre>
+
+<p style="text-align: justify; text-indent: 3em;">
+For more details, please refer to the documentation on the configuration of the dial plan:<br>
+<a href="https://wiki.asterisk.org/wiki/display/AST/Contexts%2C+Extensions%2C+and+Priorities" hreflang="en" target="_blank">https://wiki.asterisk.org/wiki/display/AST/Contexts%2C+Extensions%2C+and+Priorities</a>.
+</p>
+
+5. Restart the `asterisk` service.
 
 ```bash
 sudo systemctl restart asterisk
 ```
 
-### Tests de communication avec le client Web *Browser Phone*
+### Communication tests with the Web *Browser Phone* client
 
-Après avoir redémarré le service asterisk. Nous allons nous rendre sur le Raspberry Pi et installer Mozilla Firefox via la commande `sudo apt install firefox-esr`.
-
-Ouvrons donc maintenant Mozilla Firefox et entrons dans la barre d’adresse l’URL suivante : https://www.innovateasterisk.com/phone/.
-
-Il faut configurer les champs de la manière suivante puis cliquer sur ***Save*** :
+<p style="text-align: justify;">
+    After restarting the asterisk service. We will go to the Raspberry Pi and install Mozilla Firefox via the command <code>sudo apt install firefox-esr</code>.
+</p>
+<p style="text-align: justify;">
+	Let's open Mozilla Firefox and enter the following URL in the address bar: <a href="https://www.innovateasterisk.com/phone/" hreflang="en" target="_blank">https://www.innovateasterisk.com/phone/</a>.
+</p>
+<p style="text-align: justify;">
+    You must configure the fields as follows and then click on <b><i>Save</i></b>:
+</p>
 
 <div align="center">
-<img src="figures/figure19_bphone_conf.png" alt="Figure 19 - Configuration du client WebRTC Browser Phone" height=300>
+<img src="figures/figure19_bphone_conf.png" alt="Figure 19 - Configuring the WebRTC Browser Phone client" height=300>
 
-*(Figure 19 - Configuration du client WebRTC Browser Phone)*
+*(Figure 19 - Configuring the WebRTC Browser Phone client)*
 
 </div>
 
-L’indication *Registered* indique que le client est bien connecté au serveur Asterisk.
+<p style="text-align: justify;">
+    The <i>Registered</i> indication indicates that the client is indeed connected to the Asterisk server.
+</p>
 
 <div align="center">
-<img src="figures/figure20_bphone_registrered.png" alt="Figure 19 - Configuration du client WebRTC BrowserPhone" height=75>
+<img src="figures/figure20_bphone_registrered.png" alt="Figure 20 - Registering the rpi client on the Asterisk server" height=75>
 
-*(Figure 20 - Enregistrement du client `rpi` sur le serveur Asterisk)*
+*(Figure 20 - Registering the `rpi` client on the Asterisk server)*
 
 </div>
 
-Nous pouvons donc appeler l’Alcatel IP Touch.
+<p style="text-align: justify;">
+	So we can call the Alcatel IP Touch.
+</p>
 
 <div align="center">
-<img src="figures/figure21_webrtc_rpi_alcatel.png" alt="Figure 21 - Appel Raspberry Pi vers Alcatel IP Touch 4018 EE" height=250>
-<img src="figures/figure21_webrtc_rpi_alcatel2.png" alt="Figure 21 - Appel Raspberry Pi vers Alcatel IP Touch 4018 EE">
+<img src="figures/figure21_webrtc_rpi_alcatel.png" alt="Figure 21 - Raspberry Pi to Alcatel IP Touch 4018 EE call" height=250>
+<img src="figures/figure21_webrtc_rpi_alcatel2.png" alt="Figure 21 - Raspberry Pi to Alcatel IP Touch 4018 EE call">
 
-*(Figure 21 - Appel Raspberry Pi vers Alcatel IP Touch 4018 EE)*
+*(Figure 21 - Raspberry Pi to Alcatel IP Touch 4018 EE call)*
 
-<img src="figures/figure22_webrtc_rpi_alcatel3.png" alt="Figure 22 - Réception de l’appel du Raspberry Pi">
+<img src="figures/figure22_webrtc_rpi_alcatel3.png" alt="Figure 22 - Receiving the call from the Raspberry Pi">
 
-*(Figure 22 - Réception de l’appel du Raspberry Pi)*
+*(Figure 22 - Receiving the call from the Raspberry Pi)*
 
 </div>
 
-Ou bien depuis l’Alcatel appeler le Raspberry Pi.
+<p style="text-align: justify;">
+	Or from the Alcatel, call the Raspberry Pi.
+</p>
 
 <div align="center">
-<img src="figures/figure23_webrtc_alcatel_rpi1.png" alt="Figure 23 - Appel Alcatel IP Touch 4018 EE vers Raspberry Pi">
+<img src="figures/figure23_webrtc_alcatel_rpi1.png" alt="Figure 23 - Alcatel IP Touch 4018 EE to Raspberry Pi call">
 
-*(Figure 23 - Appel Alcatel IP Touch 4018 EE vers Raspberry Pi)*
+*(Figure 23 - Alcatel IP Touch 4018 EE to Raspberry Pi call)*
 
-<img src="figures/figure24_webrtc_alcatel_rpi2.png" alt="Figure 24 - Réception de l’appel de l’Alcatel IP Touch" height=250>
+<img src="figures/figure24_webrtc_alcatel_rpi2.png" alt="Figure 24 - Receiving the call from the Alcatel IP Touch" height=250>
 
-*(Figure 24 - Réception de l’appel de l’Alcatel IP Touch)*
+*(Figure 24 - Receiving the call from the Alcatel IP Touch)*
 
 </div>
 
 
-### Développement d'un client SIP JavaScript
+### Development of a JavaScript SIP client
 
-Compte tenu du projet et des temps, nous n'avons eu le temps que de tester des solutions déjà existantes (*Browser Phone*). Toutefois, le développement d’un client SIP peut se faire via les librairies déjà existantes telles que : [SIP.js](https://sipjs.com/), [JsSip](https://jssip.net/), [sipML5](https://www.doubango.org/sipml5/)...  
-Pour information *Browser Phone* utilise SIP.js.
+<p style="text-align: justify; text-indent: 3em;">
+Given the project and time constraints, we only had time to test existing solutions (<i>Browser Phone</i>). However, the development of a SIP client can be done via already existing libraries such as: <a href="https://sipjs.com/" hreflang="en" target="_blank">SIP.js</a>, <a href="https://jssip.net/" hreflang="en" target="_blank">JsSip</a>, <a href="https://www.doubango.org/sipml5/" hreflang="en" target="_blank">sipML5</a>...  
+    For your information <i>Browser Phone</i> uses SIP.js.
+</p>
 
 ## [Conclusion](Conclusion.md)
 
-## [Sigles](Sigles.md)
+## [Abbreviations](Abbreviations.md)
 
-## Références de cette page
+## References on this page
 
-<a name="ecdsa"></a>**(11)** : SECTIGO Store, *ECDSA vs RSA: Everything You Need to Know*, 9 juin 2020, Disponible sur : https://sectigostore.com/blog/ecdsa-vs-rsa-everything-you-need-to-know/.
-
-<a name="ecdsa_anssi"></a>**(12)** : Agence nationale de la sécurité des systèmes d'information, *Logarithme discret dans les courbes elliptiques définies sur GF(p)* **In** : *Référentiel Général de Sécurité version 2.0 - Annexe B1*, p.19-20, 21 février 2014, Disponible sur : https://www.ssi.gouv.fr/uploads/2014/11/RGS_v-2-0_B1.pdf.
+<p><a name="ecdsa"></a><strong>(<a style="text-decoration: none;" href="#ecdsa_text">11</a>)</strong>: SECTIGO Store, <em>ECDSA vs RSA: Everything You Need to Know</em>, 9<sup>th</sup> june 2020, available at: <a href="https://sectigostore.com/blog/ecdsa-vs-rsa-everything-you-need-to-know/" hreflang="en" target="_blank">https://sectigostore.com/blog/ecdsa-vs-rsa-everything-you-need-to-know/</a>.</p>
+<p><a name="ecdsa_anssi"></a><strong>(<a style="text-decoration: none;" href="#ecdsa_anssi_text">12</a>)</strong>: Agence nationale de la sécurité des systèmes d'information, <em>Logarithme discret dans les courbes elliptiques définies sur GF(p)</em> <strong>In</strong>: <em>Référentiel Général de Sécurité version 2.0 - Annexe B1</em>, p.19-20, 21<sup>st</sup> february 2014, available at: <a href="https://www.ssi.gouv.fr/uploads/2014/11/RGS_v-2-0_B1.pdf" hreflang="fr" target="_blank">https://www.ssi.gouv.fr/uploads/2014/11/RGS_v-2-0_B1.pdf</a>.</p>

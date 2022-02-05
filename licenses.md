@@ -1,29 +1,28 @@
 <div align="center">
 <br>
-<img src="https://www.utc.fr/wp-content/uploads/sites/28/2019/05/SU-UTC18-70.svg" alt="Université de Technologie de Compiègne" width="400">
+<img src="https://www.utc.fr/wp-content/uploads/sites/28/2019/05/SU-UTC18-70.svg" alt="University of Technology of Compiègne" width="400">
 <br>
 <br>
 
-# TZ - Mise en place d'une communication VoIP entre un Raspberry Pi et un téléphone IP
-
+# Setting up a VoIP communication between a Raspberry Pi and an IP phone using an Asterisk IP PBX server
 
 **Guillaume Nibert  
-Encadrant : Dr. Ahmed Lounis**
+Supervisor: [Dr. Ahmed Lounis](https://www.hds.utc.fr/~lounisah/dokuwiki/)**
 
 </div>
 
 
-# Licences utilisées
+# Other licenses
 
-Des éléments du projet sont basés sur d'autres projets opensources. Ci-dessous les licences de ces projets.
+Elements of the project are based on other open-source projects. Below are the licenses for these projects.
 
 ## `sipconfig-reynoud.txt`
 
-**Créateur** : Florian Duraffourg.  
-**Fichier concerné** : https://github.com/fduraffourg/utils/blob/master/iptouch/sipconfig-reynoud.txt.  
-**Dépôt GitHub** : https://github.com/fduraffourg/utils/.  
+**Creator**: Florian Duraffourg.  
+**Concerned file**: https://github.com/fduraffourg/utils/blob/master/iptouch/sipconfig-reynoud.txt.  
+**GitHub reposityr**: https://github.com/fduraffourg/utils/.  
 
-**Licence** :
+**License** :
 
 ```
 The MIT License (MIT)
@@ -49,12 +48,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-## Fichiers de configuration `pjsip.conf` et `extensions.conf` issus du projet *Browser Phone* puis adaptés.
+## Adpatation of the configuration files `pjsip.conf` and `extensions.conf` from the *Browser Phone* project.
 
-**Fichiers concernés** : `pjsip.conf` et `extensions.conf` présents dans ce répertoire distant : https://github.com/InnovateAsterisk/Browser-Phone/tree/master/config.  
-**Dépôt GitHub** : https://github.com/InnovateAsterisk/Browser-Phone.  
+**Concerned file**: `pjsip.conf` et `extensions.conf` présents dans ce répertoire distant : https://github.com/InnovateAsterisk/Browser-Phone/tree/master/config.  
+**GitHub repository** : https://github.com/InnovateAsterisk/Browser-Phone.  
 
-**Licence** :
+**License** :
 
 ```
 GNU LESSER GENERAL PUBLIC LICENSE

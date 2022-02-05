@@ -1,71 +1,93 @@
 <div align="center">
 <br>
-<img src="https://www.utc.fr/wp-content/uploads/sites/28/2019/05/SU-UTC18-70.svg" alt="Université de Technologie de Compiègne" width="400">
+<img src="https://www.utc.fr/wp-content/uploads/sites/28/2019/05/SU-UTC18-70.svg" alt="University of Technology of Compiègne" width="400">
 <br>
 <br>
 
-# TZ - Mise en place d'une communication VoIP entre un Raspberry Pi et un téléphone IP
-
+# Setting up a VoIP communication between a Raspberry Pi and an IP phone using an Asterisk IP PBX server
 
 **Guillaume Nibert  
-Encadrant : Dr. Ahmed Lounis**
+Supervisor: [Dr. Ahmed Lounis](https://www.hds.utc.fr/~lounisah/dokuwiki/)**
 
 </div>
 
-## [Contexte](README.md)
+## [Context](README.md)
 
-## [1. Protocole SIP et communication VoIP](1_sip_voip.md)
+## [1. SIP protocol and VoIP communication](1_sip_voip.md)
 
-## 2. Mise en place d'un serveur PABX IP Asterisk
+## 2. Implementation of an Asterisk IP PBX server
 
-Dans les grandes structures (entreprises, services publics...), on retrouve principalement deux types de communications téléphoniques : la communication interne et la communication externe. Les agents se retrouvent donc avec un téléphone fixe interne capable d'émettre des appels vers un autre téléphone fixe interne ou un téléphone externe (public). Pour que cela fonctionne, il faut un PABX, aussi appelé autocommutateur téléphonique privé.
-
-Le PABX (ci-dessous), présente de nombreux avantages, notamment :
- - financièrement, la facture s’allège, les appels internes ne passent pas par le réseau public (Orange, anciennement France Télécom) ;
- - on peut attribuer davantage de numéros interne sans difficulté ;
- - il est possible de proposer des services tels que la conférence téléphonique, les renvois, le transfert d’appel ;
- - et, bien entendu, relier une ligne interne à une ligne externe.
+<p style="text-align: justify; text-indent:  3em;">
+In large organisations (companies, public services, etc.), there are mainly two types of telephone communication: internal communication and external communication. The agents therefore have an internal fixed telephone capable of making calls to another internal fixed telephone or an external (public) telephone. For this to work, a PBX, also known as a Private Branch Exchange, is needed.
+</p>
+<p style="text-align: justify; text-indent:  3em;">
+The PBX (below) has many advantages, including:
+    <ul style="text-align: justify">
+        <li>financially, the bill is reduced, as internal calls do not go through the public network (Orange, formerly France Telecom in France);</li>
+        <li>more internal numbers can be allocated without difficulty;</li>
+        <li>it is possible to offer services such as conference calls, call forwarding, call transfer;</li>
+        <li>and, of course, linking an internal line to an external line.</li>
+    </ul>
+</p>
 
 <div align="center">
-<img src="figures/figure05_pabx_matra_mc6500.png" alt="Figure 5 - PABX Matra série MC6500" height=250>
+<img src="figures/figure05_pabx_matra_mc6500.png" alt="Figure 5 - PBX Matra MC6500 serie" height=250>
 
-*(Figure 5 - PABX Matra série MC6500)*
+<p style="text-align: center;">
+    <i>(Figure 5 - PBX Matra MC6500 serie)</i><br>
+<span style="font-size: 15px;">Attribution: <a href="https://commons.wikimedia.org/wiki/File:PABX_Matra6500.JPG" hreflang="en" target="_blank">the original uploader was After310 at French Wikipedia</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en" hreflang="en" target="_blank">CC BY-SA 3.0</a>, via Wikimedia Commons</span>
+</p>
 
 </div>
 
-Vous trouverez une liste exhaustive des fonctions d’un PABX traditionnel sur Wikipédia **([1](#wikipedia_pabx))**.
+<p style="text-align: justify; text-indent:  3em;">
+    A comprehensive list of the functions of a traditional PBX can be found on Wikipedia <b>(<a style="text-decoration: none;" href="#wikipedia_pabx" name="wikipedia_pabx_text">1</a>)</b>.
+</p>
+<p style="text-align: justify; text-indent:  3em;">
+Now that the overall operation of this system has been presented, how can communication using SIP protocol be achieved? 
+</p>
+<p style="text-align: justify; text-indent:  3em;">
+Historically, there have been three main phases in the evolution of telephone communications:
+    <ol style="text-align: justify">
+        <li>The public switched telephone network (PSTN) which is analogue. In this network, the SIP protocol cannot be used because SIP is a digital protocol.</li>
+        <li>The Integrated Services Digital Network (ISDN) is a digital network whose network stack is based on the OSI model. Starting at Layer 3 (transport), the following protocols are used: Q.931 <b>(<a style="text-decoration: none;" href="#q931" name="q931_text">2</a>)</b>, X.25 layer 3 <b>(<a style="text-decoration: none;" href="#x253" name="x253_text">3</a>)</b>. Here it is Layer 3 which is problematic: SIP relies on IP to function.</li>
+        <li>Voice over IP, over the Internet, is digital. SIP can work in this case. The associated PBX is an IP PBX (Internet Protocol private branch exchange).</li>
+    </ol>
+</p>
 
-Le fonctionnement global de ce système étant présenté, comment peut-on donc réaliser une communication utilisant le protocole SIP ?
+<p style="text-align: justify; text-indent:  3em;">
+There are many IP PBXs in the world. Asterisk has the distinction of being the world's number one in terms of usage. It has a free version and a proprietary version. And it offers interoperability with older networks (PSTN and ISDN) by means of hardware cards and software modules. This last point is probably a major factor in its success: companies that still use old equipment, and that, in a perspective of modernisation, migrate to recent equipment, probably use several systems (PSTN, ISDN or VoIP), Asterisk will make it possible to manage these three systems simultaneously. 
+</p>
+<p style="text-align: justify; text-indent:  3em;">
+So let's proceed with the installation of Asterisk.
+</p>
 
-Historiquement, il y a eu trois grandes phases dans l’évolution des communications téléphoniques :
-1. Le réseau téléphonique commuté (RTC), analogique. Dans ce réseau, impossible d’utiliser le protocole SIP puisque ce dernier est numérique.
-2. Le réseau numérique à intégration de services (RNIS ou ISDN dans sa version anglaise), numérique, dont la base de la pile réseau est conforme au modèle OSI. À partir de la couche 3 (transport), on retrouve les protocoles suivants : Q.931 **([2](#q931))**, X.25 couche 3 **([3](#x253))**. Ici, c’est la couche 3 qui pose problème. SIP s’appuie sur IP pour fonctionner.
-3. La voix sur IP, sur le réseau Internet, est numérique. SIP pourra fonctionner dans ce cas. Le PABX associé est un PABX IP ou encore appelé IPBX (Internet Protocol Branch eXchange).
+## Technology choices
 
-Il existe de nombreux IPBX dans le monde. Asterisk a la particularité d’être le numéro 1 mondial en termes d’utilisation. Il comporte une version libre et une version propriétaire. Et propose une interopérabilité avec les anciens réseaux (RTC et RNIS) au moyen de cartes matérielles et de modules logiciels. Ce dernier point est probablement un grand facteur de son succès : les entreprises qui utilisent encore du vieux matériel, et qui, dans une optique de modernisation migrent vers du matériel récent, utilisent probablement plusieurs systèmes (RTC, RNIS ou encore VoIP), Asterisk va permettre de gérer simultanément ces trois systèmes.
-
-Procédons donc à la mise en place d’Asterisk.
-
-### Choix technologiques
-
-- OS : Debian 10, il est libre et est principalement utilisé en tant que serveur dans le monde informatique. C’est un système proposant des paquets régulièrement mis à jour en termes de stabilité et de sécurité.
-- Asterisk : version 18 LTS compilée à partir de ses sources. La version dans les dépôts de Debian est ancienne (16 pour Debian 10) et bien qu'elle soit aussi une version LTS, le fait qu'elle soit déjà compilée offre moins de flexibilité en termes d’ajout de modules. Par ailleurs, le module assurant la gestion du protocole SIP dans la version 16 est dépréciée depuis la version 17 **([4](#sip_deprecie))** au profit d’un nouveau module ([PJSIP](https://www.pjsip.org/)) capable de gérer le protocole SIP ainsi que les fonctions de traversée de NAT avec SIP **([5](#problematique_traversee_nat))**.
+<p style="text-align: justify; text-indent:  3em;">
+    <ul style="text-align: justify">
+        <li>OS: Debian 10, it is free and is mainly used as a server in the computer world. It is a system with regularly updated packages in terms of stability and security.</li>
+        <li>Asterisk: 18 LTS release compiled from source. The version in the Debian repositories is old (16 for Debian 10) and although it is also an LTS version, the fact that it is already compiled offers less flexibility in terms of adding modules. In addition, the module that handled SIP in the 16 release has been deprecated since the 17 release <b>(<a style="text-decoration: none;" href="#sip_deprecie" name="sip_deprecie_text">4</a>)</b> in favour of a new module (<a href="https://www.pjsip.org/" hreflang="en" target="_blank">PJSIP</a>) that can handle SIP as well as NAT traversal functions with SIP <b>(<a style="text-decoration: none;" href="#problematique_traversee_nat" name="problematique_traversee_nat_text">5</a>)</b>.</li>
+    </ul>
+</p>
 
 
-## Prérequis
+## Prerequisite
 
-Avoir une machine Debian 10 (sans interface graphique) et à jour connectée au réseau local et à internet, disposant également d’un accès SSH (cf. annexe A1 du rapport PDF pour la mise en place détaillée de ce prérequis).
-
-Considérons dans cette partie les informations suivantes de cette machine :
-
+<p style="text-align: justify; text-indent:  3em;">
+Have an up-to-date Debian 10 machine (without GUI) connected to the local network and to the internet, also with SSH access (see appendix A1 of the PDF report for the detailed implementation of this prerequisite).
+</p>
+<p style="text-align: justify; text-indent:  3em;">
+Consider in this section the following information from this machine:
+</p>
 <div align="center">
 
 <table>
     <thead>
         <tr>
-            <th>Adresse IP</th>
-            <th>Utilisateur</th>
-            <th>Mot de passe</th>
+            <th>IP address</th>
+            <th style="min-width: 110px">User</th>
+            <th>Password</th>
         </tr>
     </thead>
     <tbody>
@@ -83,65 +105,66 @@ Considérons dans cette partie les informations suivantes de cette machine :
 
 </div>
 
-## Installation d'Asterisk
-*Remarque : nous n’installerons pas les librairies permettant la gestion des cartes d’interface téléphoniques de Digium (société maintenant Asterisk) et la gestion des protocoles utilisés dans les réseaux RNIS.*
+## Installation of Asterisk
+*Note: the libraries allowing the management of telephone interface cards from Digium (the company maintaining Asterisk) and the management of protocols used in ISDN networks will not be installed.*
 
-1. Se connecter en SSH à la machine `asterisk`.
-```bash
-# ssh login@adresse_ip_vm -p 22
+1. Connect via SSH to the `asterisk` machine.
+<pre><span style="color:green;"># ssh login@vm_ip_address -p 22</span>
 ssh asterisktz@192.168.1.80 -p 22
-```
+</pre>
 
-2. Installer les paquets permettant la compilation d’Asterisk et des prérequis.
+2. Install the packages allowing the compilation of Asterisk and the prerequisites.
 ```bash
 sudo apt update && sudo apt install linux-headers-$(uname -r) build-essential autoconf libglib2.0-dev libtool net-tools
 ```
 
-3. Redémarrer la machine Debian et se connecter à nouveau en SSH.
+3. Reboot the Debian machine and connect again via SSH.
 ```bash
 sudo reboot
 ```
-```bash
-# Reconnexion en SSH
+<pre><span style="color:green;"># SSH reconnection</span>
 ssh asterisktz@192.168.1.80 -p 22
-```
+</pre>
 
-4. Se placer dans le répertoire `/usr/src` et télécharger Asterisk 18 à cette adresse : https://downloads.asterisk.org/pub/telephony/asterisk/asterisk-18-current.tar.gz. 
+4. Go to the directory `/usr/src` and download Asterisk 18 at this address: https://downloads.asterisk.org/pub/telephony/asterisk/asterisk-18-current.tar.gz. 
 
 ```bash
 cd /usr/src
 sudo wget https://downloads.asterisk.org/pub/telephony/asterisk/asterisk-18-current.tar.gz
 ```
 
-5. Décompresser l'archive.
+5. Decompress the archive.
 ```bash
 sudo tar -zxvf asterisk-18-current.tar.gz
 ```
 
-6. Exécuter le script install_prereq installant les prérequis. *Remarque : pour connaître le numéro de version mineure, taper `ls`. Dans ce rapport, il s’agit d’Asterisk 18.2.*
+6. Run the  `install_prereq` script installing the prerequisites. *Note: To find out the minor version number, type `ls`. In this report, it is Asterisk 18.2.*
 
 ```bash
 cd asterisk-18.2.0/contrib/scripts/
 sudo ./install_prereq install
 ```
 
-Pendant l’installation des prérequis une fenêtre s’affiche demandant de sélectionner l’indicatif des numéros de téléphones. Sélectionner ***33*** pour la France et valider par `<Ok>`.
+<p style="text-align: justify;">
+    During the installation of the prerequisites a window appears asking to select the telephone number code. Select <b><i>33</i></b> for France and validate with <code>&lt;Ok&gt;</code>. You can find an international list of area codes on this site: <a href="https://countrycode.org/" hreflang="en" target="_blank">https://countrycode.org/</a>.
+</p>
 
 <div align="center">
-<img src="figures/figure06_indicatif.png" alt="Figure 6 - Paramétrage indicatif téléphonique">
+<img src="figures/figure06_indicatif.png" alt="Figure 6 - Area code setting">
 
-*(Figure 6 - Paramétrage indicatif téléphonique)*
+*(Figure 6 - Area code setting)*
 
 </div>
 
-7. Vérification des dépendances requises.
+7. Checking the required dependencies.
 
 ```bash
 cd ../..
 sudo ./configure
 ```
-
-Si l’opération se déroule bien, on obtient un message similaire à celui-ci avec le logo d’Asterisk :
+<p style="text-align: justify;">
+If the operation is successful, you will get a message similar to this one with the Asterisk logo:
+</p>
 
 ```
                 .$$$$$$$$$$$$$$$=..      
@@ -173,46 +196,55 @@ configure: Host CPU : x86_64
 configure: build-cpu:vendor:os: x86_64 : pc : linux-gnu :
 configure: host-cpu:vendor:os: x86_64 : pc : linux-gnu :
 ```
+<p style="text-align: justify;">
+If it went wrong, here is a link to the documentation: <br><a href="https://wiki.asterisk.org/wiki/display/AST/Checking+Asterisk+Requirements" hreflang="en" target="_blank">https://wiki.asterisk.org/wiki/display/AST/Checking+Asterisk+Requirements</a>.
+</p>
 
-Si cela s’est mal déroulé, voici un lien vers la documentation : https://wiki.asterisk.org/wiki/display/AST/Checking+Asterisk+Requirements.
-
-8. Sélection des options à installer pour Asterisk. Veiller à ce que le terminal ait une taille minimale de `80 x 27`.
+8. Selecting the options to be installed for Asterisk. Ensure that the terminal is at least `80x27` in size.
 
 ```bash
 sudo make menuselect
 ```
+<p style="text-align: justify;">
+A window appears allowing you to choose the options.
+</p>
 
-Une fenêtre s’affiche permettant de choisir les options.
+<p style="text-align: justify;">
+Go to the Core Sound Package section to install the French sounds (or another language if you prefer):
+    <ul style="text-align: justify;">
+        <li>Deselect the <code>CORE-SOUNDS-EN-GSM</code>. These are the English sounds with the GSM audio codec.</li>
+        <li>Select the <code>CORE-SOUNDS-FR-ULAW</code> and <code>CORE-SOUNDS-FR-ALAW</code>packages.These are the French sounds with ULAW and ALAW codecs (supported by the Alcatel IP Touch 4018EE <b>(<a style="text-decoration: none;" href="#alaw_ulaw_alcatel" name="alaw_ulaw_alcatel_text">6</a>)</b>). These codecs are defined by the ITU G.711 standard: <a href="https://www.itu.int/rec/T-REC-G.711-198811-I/en" hreflang="en" target="_blank">https://www.itu.int/rec/T-REC-G.711-198811-I/en</a>. The ALAW codec is used in Europe and Africa. The ULAW codec in North America and Japan <b>(<a style="text-decoration: none;" href="#alaw_ulaw_geo" name="alaw_ulaw_geo_text">7</a>)</b>.</li>
+    </ul>
 
-Aller dans la section Core Sound Package pour installer les sons français (messages vocaux) :
- - Déselectionner le package `CORE-SOUNDS-EN-GSM`. Il s’agit des sons anglais avec le codec audio GSM.
- - Sélectionner les packages `CORE-SOUNDS-FR-ULAW` et `CORE-SOUNDS-FR-ALAW`. Il s’agit des sons français avec les codecs ULAW et ALAW (pris en charge par l’Alcatel IP Touch 4018EE **([6](#alaw_ulaw_alcatel))**). Ces codecs sont définis par la norme G.711 de l’UIT : https://www.itu.int/rec/T-REC-G.711-198811-I/fr. Le codec ALAW est utilisé en Europe et en Afrique. Le codec ULAW en Amérique du Nord et au Japon **([7](#alaw_ulaw_geo))**.
 
 <div align="center">
-<img src="figures/figure07_core_sound.png" alt="Figure 7 - Sélection des modules de sons d’Asterisk">
+<img src="figures/figure07_core_sound.png" alt="Figure 7 - Selection of Asterisk sound modules">
 
-*(Figure 7 - Sélection des modules de sons d’Asterisk)*
+*(Figure 7 - Selection of Asterisk sound modules)*
 
 </div>
 
-Puis dans la section Extra Sound Packages, sélectionner les packages `EXTRA-SOUNDS-FR-ULAW` et `EXTRA-SOUNDS-FR-ALAW`.
+<p style="text-align: justify;">
+Then in the Extra Sound Packages section, select the <code>EXTRA-SOUNDS-FR-ULAW</code> and <code>EXTRA-SOUNDS-FR-ALAW</code> packages.
+</p>
 
 <div align="center">
-<img src="figures/figure08_extras_sound.png" alt="Figure 8 - Sélection des modules de sons extra d’Asterisk">
+<img src="figures/figure08_extras_sound.png" alt="Figure 8 - Selection of Asterisk extra sound modules">
 
-*(Figure 8 - Sélection des modules de sons extra d’Asterisk)*
+*(Figure 8 - Selection of Asterisk extra sound modules)*
 
 </div>
 
-Valider en tapant la touche `F12`.
+Confirm by pressing the `F12` key.
 
-9. Compiler le programme avec les options précédemment choisies puis installer Asterisk.
+9. Compile the program with the previously chosen options and install Asterisk.
 
 ```bash
 sudo make
 ```
-
-La compilation prend du temps (en général ~15 min) selon la puissance de la machine. Une fois réussie...
+<p style="text-align: justify;">
+The compilation takes time depending on the power of the machine. Once successful...
+</p>
 
 ```
 +--------- Asterisk Build Complete ---------+
@@ -224,13 +256,13 @@ La compilation prend du temps (en général ~15 min) selon la puissance de la ma
 +--------- Asterisk Build Complete ---------+
 ```
 
-...on installe Asterisk.
+...the installation of Asterisk can begin.
 
 ```bash
 sudo make install
 ```
 
-L’installation se termine sur ce message :
+The installation ends with this message:
 
 ```
  +---- Asterisk Installation Complete -------+
@@ -261,20 +293,20 @@ L’installation se termine sur ce message :
  +-------------------------------------------+
 ```
 
-10. Créer les fichiers d’exemples de configuration dans le dossier `/etc/asterisk`.
+10. Create the sample configuration files in the `/etc/asterisk` folder.
 
 ```bash
 sudo make samples
 ```
 
-11. Installer les scripts de démarrage.
+11. Install the start-up scripts.
 
 ```bash
 sudo make config
 sudo ldconfig
 ```
 
-12. Démarrage automatique du service Asterisk au lancement de la machine.
+12. Setting up the automatic start of the Asterisk service when the machine is launched.
 
 ```bash
 cd
@@ -290,12 +322,14 @@ sudo chown -R asterisk.asterisk /usr/lib/asterisk
 sudo nano /etc/default/asterisk
 ```
 
-Décommenter les lignes `AST_USER="asterisk"` et `AST_GROUP="asterisk"` (enlever le croisillon `#` devant chaque ligne). Enregistrer avec ***Ctrl + O***. Quitter avec ***Ctrl + X***.
+<p style="text-align: justify;">
+    Uncomment the lines <code>AST_USER="asterisk"</code> and <code>AST_GROUP="asterisk"</code> (remove the <code>#</code> before each line). Save with <b><i>Ctrl + O</i></b>. Exit with <b><i>Ctrl + X</i></b>.
+</p>
 
 <div align="center">
-<img src="figures/figure09_asterisk_default_user.png" alt="Figure 9 - Configuration d’asterisk en temps qu’utilisateur par défaut du service Asterisk">
+<img src="figures/figure09_asterisk_default_user.png" alt="Figure 9 - Setting asterisk as the default user of the Asterisk service">
 
-*(Figure 9 - Configuration d’`asterisk` en temps qu’utilisateur par défaut du service Asterisk)*
+*(Figure 9 - Setting `asterisk` as the default user of the Asterisk service)*
 
 </div>
 
@@ -303,7 +337,9 @@ Décommenter les lignes `AST_USER="asterisk"` et `AST_GROUP="asterisk"` (enlever
 sudo nano /etc/asterisk/asterisk.conf
 ```
 
-Décommenter les lignes (enlever le point-virgule `;` devant chaque ligne). Enregistrer avec ***Ctrl + O***. Quitter avec ***Ctrl + X***.
+<p style="text-align: justify;">
+    Uncomment the lines (remove the semicolon <code>;</code> before each line). Save with <b><i>Ctrl + O</i></b>. Exit with <b><i>Ctrl + X</i></b>.
+</p>
 
 ```
 runuser = asterisk ; The user to run as.
@@ -311,32 +347,35 @@ rungroup = asterisk ; The group to run as.
 ```
 
 <div align="center">
-<img src="figures/figure10_asterisk_default_user.png" alt="Figure 10 - Configuration d’asterisk en temps qu’utilisateur par défaut du service Asterisk">
+<img src="figures/figure10_asterisk_default_user.png" alt="Figure 10 - Setting asterisk as the default user of the Asterisk service">
 
-*(Figure 10 - Configuration d’`asterisk` en temps qu’utilisateur par défaut du service Asterisk)*
+*(Figure 10 - Setting `asterisk` as the default user of the Asterisk service)*
 
 </div>
 
-13. Démarrer le service Asterisk
+13. Start the Asterisk service
 
 ```bash
 sudo systemctl start asterisk
 ```
 
-Vous pouvez maintenant vérifier son statut actuel via la commande suivante :
+You can now check its current status with the following command:
 
 ```bash
 sudo systemctl status asterisk
 ```
 
 <div align="center">
-<img src="figures/figure11_asterisk_errors.png" alt="Figure 10 - Configuration d’asterisk en temps qu’utilisateur par défaut du service Asterisk">
+<img src="figures/figure11_asterisk_errors.png" alt="Figure 11 - Launch of the Asterisk service with errors">
 
-*(Figure 11 - Lancement du service Asterisk avec erreurs)*
+*(Figure 11 - Launch of the Asterisk service with errors)*
 
 </div>
 
-À ce stade, s’il y a ces deux lignes rouges, on peut les corriger de cette manière (fix provenant de https://clearhat.org/blog/a-fix-for-apt-install-asterisk-on-ubuntu-18-04) :
+<p style="text-align: justify;">
+    At this stage, if there are these two red lines, they can be corrected in this way (fix from <a href="https://www.clearhat.org/blog/post/a-fix-for-apt-install-asterisk-on-ubuntu-18-04" hreflang="en" target="_blank">https://www.clearhat.org/blog/post/a-fix-for-apt-install-asterisk-on-ubuntu-18-04</a>):
+</p>
+
 
 ```bash
 sudo systemctl stop asterisk
@@ -351,180 +390,214 @@ sudo systemctl start asterisk
 ```
 
 <div align="center">
-<img src="figures/figure12_asterisk_without_errors.png" alt="Figure 12 - Lancement du service Asterisk sans erreur">
+<img src="figures/figure12_asterisk_without_errors.png" alt="Figure 12 - Launch of the Asterisk service without errors">
 
-*(Figure 12 - Lancement du service Asterisk sans erreur)*
+*(Figure 12 - Launch of the Asterisk service without errors)*
 
 </div>
 
-14. Démarrage automatique du service Asterisk.
+14. Automatic start of the Asterisk service.
 
 ```bash
 sudo /lib/systemd/systemd-sysv-install enable asterisk
 ```
+<p style="text-align: justify;">
+Asterisk is operational. Let's move on to user creation and SIP configuration!
+</p>
 
-Asterisk est opérationnel. Passons donc à la création d’utilisateurs et la configuration SIP !
+### SIP configuration and user creation
 
-### Configuration de SIP et création d'utilisateurs
-
-Nous avons donc un serveur opérationnel, il faut donc maintenant configurer SIP et créer des utilisateurs.
-Nous allons créer 3 utilisateurs dont les caractéristiques sont les suivantes :
+<p style="text-align: justify; text-indent:  3em;">
+    So we have an operational server, we must now configure SIP and create users. We will create 3 users with the following characteristics:
+</p>
 
 <div align="center">
-
-|                     | Téléphone Alcatel                                       | Raspberry Pi                      | Test                        |
-| ------------------- | ------------------------------------------------------- | --------------------------------- | --------------------------- |
-| Usage               | Compte dédié pour le téléphone Alcatel IP Touch 4018 EE | Compte dédié pour le Raspberry Pi | Compte dédié pour les tests |
-| Nom d’affichage     | Alcatel IP Touch                                        | Raspberry Pi                      | Guillaume Nibert            |
-| Numéro de téléphone | 5001                                                    | 5002                              | 5003                        |
-| Identifiant         | alcaltel                                                | rpi                               | guillaume                   |
-| Mot de passe        | 11111111                                                | 22222222                          | 33333333                    |
-
+<table>
+    <thead>
+        <tr>
+            <th></th>
+            <th>Alcatel phone</th>
+            <th style="min-width: 50px;">Raspberry Pi</th>
+            <th>Test</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Purpose</td>
+            <td>Dedicated account for the Alcatel IP Touch 4018 EE phone</td>
+            <td>Dedicated account for the Raspberry Pi</td>
+            <td>Dedicated account for testing</td>
+        </tr>
+        <tr>
+            <td>Display name</td>
+            <td>Alcatel IP Touch</td>
+            <td>Raspberry Pi</td>
+            <td>Guillaume Nibert</td>
+        </tr>
+        <tr>
+            <td>Phone number</td>
+            <td>5001</td>
+            <td>5002</td>
+            <td>5003</td>
+        </tr>
+        <tr>
+            <td>Login</td>
+            <td>alcaltel</td>
+            <td>rpi</td>
+            <td>guillaume</td>
+        </tr>
+        <tr>
+            <td style="min-width: 100px;">Password</td>
+            <td>11111111</td>
+            <td>22222222</td>
+            <td>33333333</td>
+        </tr>
+    </tbody>
+</table>
 </div>
 
-Il y a deux fichiers de configuration à éditer : `pjsip.conf` et `extensions.conf`. Le premier sert à créer les comptes, configurer le fonctionnement de SIP (UDP/TCP), les systèmes d’authentification… et le deuxième à définir le comportement du système, plus précisément le plan de numérotation (similaire au routage si l’on parlait de paquets IP). Ce “routage” se fait en fonction des numéros de téléphone (identifiants).
-Ces fichiers sont présents dans `/etc/asterisk` et dans le répertoire `asterisk_sip` du dépôt Git.
+<p style="text-align: justify;">
+	There are two configuration files to edit:<code>pjsip.conf</code> and <code>extensions.conf</code>. The first one is used to create accounts, configure the operation of SIP (UDP/TCP), the authentication systems... and the second to define the behaviour of the system, more precisely the dialling plan (similar to routing if we were talking about IP packets). This "routing" is done according to telephone numbers (identifiers). These files are present in <code>/etc/asterisk</code> and in the <code>asterisk_sip</code> directory of the Git repository.
+</p>
 
-### Configuration de SIP - `pjsip.conf`
+### SIP configuration - `pjsip.conf`
 
-1. Renommer le fichier de configuration `pjsip.conf` par `pjsip_original.conf`.
+1. Rename the `pjsip.conf` configuration file to `pjsip_original.conf`.
 
 ```bash
 sudo mv /etc/asterisk/pjsip.conf /etc/asterisk/pjsip_original.conf
 ```
 
-2. Créer un fichier `pjsip.conf`...
+2. Create a `pjsip.conf` file...
 
 ```bash
 sudo nano /etc/asterisk/pjsip.conf
 ```
 
-...et placer le contenu suivant :
-
-```conf
+...and write the following content:
+<pre>
+conf
 [transport-udp]
-type=transport
-protocol=udp
-bind=0.0.0.0
+<span style="color:dodgerblue;">type</span>=transport
+<span style="color:dodgerblue;">protocol</span>=udp
+<span style="color:dodgerblue;">bind</span>=0.0.0.0
  
-;Modèles de base, ils seront recopiés pour chaque utilisateur
+<span style="color:green;">; Basic templates, they will be copied for each user</span>
  
 [endpoint_basic](!)
-type=endpoint         ; point de terminaison (téléphone/raspberry/pc...)
-context=plan-num      ; se sert du plan de numérotation défini dans extensions.conf
-disallow=all          ; désactivation de tous les codecs audio
-allow=ulaw            ; sauf le codec ULAW
-allow=alaw            ; et le codec ALAW
-language=fr
+<span style="color:dodgerblue;">type</span>=endpoint         <span style="color:green;">; endpoint (phone/rpi/pc...)</span>
+<span style="color:dodgerblue;">context</span>=plan-num      <span style="color:green;">; uses the dial plan defined in extensions.conf</span>
+<span style="color:dodgerblue;">disallow</span>=all          <span style="color:green;">; disabling all audio codecs</span>
+<span style="color:dodgerblue;">allow</span>=ulaw            <span style="color:green;">; except the ULAW codec</span>
+<span style="color:dodgerblue;">allow</span>=alaw            <span style="color:green;">; and the ALAW codec</span>
+<span style="color:dodgerblue;">language</span>=fr
  
 [authentication](!)
-type=auth             ; type de la section : authentification
-auth_type=userpass    ; authentification par mot de passe
+<span style="color:dodgerblue;">type</span>=auth             <span style="color:green;">; type of section: authentication</span>
+<span style="color:dodgerblue;">auth_type</span>=userpass    <span style="color:green;">; password authentication</span>
  
 [aor_template](!)
-type=aor              ; savoir où le point de terminaison peut être contacté
-max_contacts=1
+<span style="color:dodgerblue;">type</span>=aor              <span style="color:green;">; find out where the endpoint can be contacted </span>
+<span style="color:dodgerblue;">max_contacts</span>=1
  
-;Définitions des comptes utilisateurs associés aux matériels
+<span style="color:green;">; Definitions of user accounts associated with equipment</span>
  
 [alcatel](endpoint_basic)
-auth=alcatel
-aors=alcatel
-callerid="Alcaltel IP Touch" <5001> ; pour avoir le nom de l'appelant qui s'affiche
+<span style="color:dodgerblue;">auth</span>=alcatel
+<span style="color:dodgerblue;">aors</span>=alcatel
+<span style="color:dodgerblue;">callerid</span>=<span style="color:chocolate;">"Alcaltel IP Touch"</span> <5001> <span style="color:green;">; to have the name of the caller displayed</span>
 [alcatel](authentication)
-password=11111111
-username=alcatel
+<span style="color:dodgerblue;">password</span>=11111111
+<span style="color:dodgerblue;">username</span>=alcatel
 [alcatel](aor_template)
  
 [rpi](endpoint_basic)
-auth=rpi
-aors=rpi
-callerid="Raspberry Pi" <5002>
+<span style="color:dodgerblue;">auth</span>=rpi
+<span style="color:dodgerblue;">aors</span>=rpi
+<span style="color:dodgerblue;">callerid</span>=<span style="color:chocolate;">"Raspberry Pi"</span> <5002>
 [rpi](authentication)
-password=22222222
-username=rpi
+<span style="color:dodgerblue;">password</span>=22222222
+<span style="color:dodgerblue;">username</span>=rpi
 [rpi](aor_template)
  
 [guillaume](endpoint_basic)
-auth=guillaume
-aors=guillaume
-callerid="Guillaume Nibert" <5003>
+<span style="color:dodgerblue;">auth</span>=guillaume
+<span style="color:dodgerblue;">aors</span>=guillaume
+<span style="color:dodgerblue;">callerid</span>=<span style="color:chocolate;">"Guillaume Nibert"</span> <5003>
 [guillaume](authentication)
-password=33333333
-username=guillaume
+<span style="color:dodgerblue;">password</span>=33333333
+<span style="color:dodgerblue;">username</span>=guillaume
 [guillaume](aor_template)
-```
+</pre>
+<p style="text-align: justify;">
+The creation of the accounts and the configuration of SIP is complete. Let's move on to the dial plan.
+</p>
 
-La création des comptes et la configuration de SIP est terminée. Passons au plan de numérotation.
+### Dial plan - `extensions.conf`
 
-### Plan de numérotation - `extensions.conf`
-
-1. Renommer le fichier de configuration `extensions.conf` par `extensions_original.conf`.
+1. Rename the `extensions.conf` configuration file to `extensions_original.conf`.
 
 ```bash
 sudo mv /etc/asterisk/extensions.conf /etc/asterisk/extensions_original.conf
 ```
 
-2. Créer un fichier `extensions.conf`...
+2. Create an `extensions.conf` file...
 
 ```bash
 sudo nano /etc/asterisk/extensions.conf
 ```
 
-...et placer le contenu suivant :
+...and write the following content:
 
-```conf
+<pre>
+conf
 [plan-num]
-exten => 5001,1,Answer(500)
-exten => 5001,2,Dial(PJSIP/alcatel,25)
-exten => 5001,3,Hangup()
+<span style="color:dodgerblue;">exten</span> => 5001,1,Answer(500)
+<span style="color:dodgerblue;">exten</span> => 5001,2,Dial(PJSIP/alcatel,25)
+<span style="color:dodgerblue;">exten</span> => 5001,3,Hangup()
  
-exten => 5002,1,Answer(500)
-exten => 5002,2,Dial(PJSIP/rpi,25)
-exten => 5002,3,Hangup()
+<span style="color:dodgerblue;">exten</span> => 5002,1,Answer(500)
+<span style="color:dodgerblue;">exten</span> => 5002,2,Dial(PJSIP/rpi,25)
+<span style="color:dodgerblue;">exten</span> => 5002,3,Hangup()
  
-exten => 5003,1,Answer(500)
-exten => 5003,2,Dial(PJSIP/guillaume,25)
-exten => 5003,3,Hangup()
+<span style="color:dodgerblue;">exten</span> => 5003,1,Answer(500)
+<span style="color:dodgerblue;">exten</span> => 5003,2,Dial(PJSIP/guillaume,25)
+<span style="color:dodgerblue;">exten</span> => 5003,3,Hangup()
  
-; les 1, 2 et 3 correspondent aux priorités des appels des
-; applications Answer(), Dial() et Hangup(). 1 étant la priorité la
-; plus forte. On peut également écrire 1,n,n où le premier n
-; correspond à 2 et le deuxième à 3.
-```
+<span style="color:green;">; 1, 2 and 3 correspond to the priorities of the Answer(),
+; Dial() and Hangup() application calls. 1 being the highest priority.
+; We can also write 1,n,n where the first n corresponds to 2 and the second
+; to 3.
+</span>
+</pre>
 
-“L'application ***Answer()*** prend un délai (en millisecondes) comme premier paramètre. L'ajout d'un court délai est souvent utile pour s'assurer que le point de terminaison ait le temps de commencer à traiter l'audio avant de commencer la communication via l’application ***Dial()***. Sinon, vous risquez de ne pas entendre le tout début” **([8](#extensions_conf))**. ***Hangup()*** comme son nom l’indique raccroche l’appel en cours.
+<p style="text-align: justify; text-indent:  3em;">
+"The <b><i>Answer()</i></b> application takes a delay (in milliseconds) as its first parameter. Adding a short delay is often useful to ensure that the endpoint has time to start processing the audio before starting the communication via the <b><i>Dial()</i></b> application. Otherwise, you may not hear the very beginning" <b>(<a style="text-decoration: none;" href="#extensions_conf" name="extensions_conf_text">8</a>)</b>. <b><i>Hangup()</i></b> as the name suggests hangs up the current call.
+</p>
+<p style="text-align: justify; text-indent:  3em;">
+The dial plan is complete. The SIP accounts have been created. We can now proceed to the configuration of a SIP client on the Raspberry Pi.
+</p>
 
-Le plan de numérotation est terminé. Les comptes SIP ont été créés. On peut donc passer à la configuration d’un client SIP sur le Raspberry Pi.
+## [3. Installation and configuration of a SIP client on the Raspberry Pi](3_install_client_sip_rpi.md)
 
+## [4. IP phone configuration](4_config_alcatel.md)
 
+## [5. Communication tests](5_tests_com_sip.md)
 
-## [3. Installation et configuration d'un client SIP sur le Raspberry Pi](3_install_client_sip_rpi.md)
-
-## [4. Configuration du téléphone IP](4_config_alcatel.md)
-
-## [5. Tests de communication](5_tests_com_sip.md)
-
-## [6. Client SIP JavaScript utilisant WebRTC](6_sip_webrtc.md)
+## [6. JavaScript SIP client using WebRTC](6_sip_webrtc.md)
 
 ## [Conclusion](Conclusion.md)
 
-## [Sigles](Sigles.md)
+## [Abbreviations](Abbreviations.md)
 
-## Références de cette page
+## References on this page
 
-<a name="wikipedia_pabx"></a>**(1)** : Wikipédia, *Généralités* **In** : *Autocommutateur téléphonique privé*, 26 novembre 2020, Disponible sur : https://fr.wikipedia.org/wiki/Autocommutateur_t%C3%A9l%C3%A9phonique_priv%C3%A9.
-
-<a name="q931"></a>**(2)** : Secteur de la normalisation des télécommunications de l'UIT, *Spécification de la couche 3 de l'interface utilisateur-réseau RNIS pour la commande de l’appel de base*, UIT, Mai 1998, Disponible sur : https://www.itu.int/rec/T-REC-Q.931-199805-I/fr.
-
-<a name="x253"></a>**(3)** : Secteur de la normalisation des télécommunications de l'UIT, *Interface entre équipement terminal de traitement de données et équipement de terminaison de circuit de données pour terminaux fonctionnant en mode paquet et raccordés par circuit spécialisé à des réseaux publics pour données*, UIT, Octobre 1996, Disponible sur : https://www.itu.int/rec/T-REC-X.25-199610-I/fr.
-
-<a name="sip_deprecie"></a>**(4)** : Matt Fredrickson, *PSA: chan_sip status changed to “deprecated” & Asterisk 17.0.0-rc2 Release*, Asterisk.org, 25 septembre 2019, Disponible sur : https://www.asterisk.org/deprecating-chan_sip-asterisk-17-0-0-rc2-release/.
-
-<a name="problematique_traversee_nat"></a>**(5)** : Odin Gremaud, *Introduction* **In** : *La traversée de NAT en VoIP SIP*, NEXCOM Systems, p.1, 20 juin 2012, Disponible sur : https://www.nexcom.fr/wp-content/uploads/whitepapers/bcp_nat_traversal.pdf.
-
-<a name="alaw_ulaw_alcatel"></a>**(6)** : Alcatel-Lucent, *Caractéristiques audio* **In** : *Téléphones Alcatel-Lucent IP Touch 4008/4018 Extended Edition*, p.2, 2010, Disponible sur : https://www.bureautique-communication.fr/fileuploader/download/download/?d=0&file=custom%2Fupload%2F1%2F6%2F16590.pdf.
-
-<a name="alaw_ulaw_geo"></a>**(7)** : Wikipédia, *G.711*, 17 juillet 2017, Disponible sur : https://fr.wikipedia.org/wiki/G.711.
-
-<a name="extensions_conf"></a>**(8)** : Malcolm Davenport, *Answer, Playback, and Hangup Applications* **In** : *Asterisk Documentation*, Asterisk.org, 19 décembre 2013, Disponible sur : https://wiki.asterisk.org/wiki/display/AST/Answer%2C+Playback%2C+and+Hangup+Applications.
+<p><a name="wikipedia_pabx"></a><strong>(<a style="text-decoration: none;" href="#wikipedia_pabx_text">1</a>)</strong>: Wikipedia, <em>Business telephone system</em>, 21<sup>st</sup> january 2022, available at: <a href="https://en.wikipedia.org/wiki/Business_telephone_system" hreflang="en" target="_blank">https://en.wikipedia.org/wiki/Business_telephone_system</a>.</p>
+<p><a name="q931"></a><strong>(<a style="text-decoration: none;" href="#q931_text">2</a>)</strong>: 
+ITU Telecommunication Standardization Sector, <em>ISDN user-network interface layer 3 specification for basic call control</em>, ITU, May 1998, available at: <a href="https://www.itu.int/rec/T-REC-Q.931-199805-I/en" hreflang="en" target="_blank">https://www.itu.int/rec/T-REC-Q.931-199805-I/en</a>.</p>
+<p><a name="x253"></a><strong>(<a style="text-decoration: none;" href="#x253_text">3</a>)</strong>: ITU Telecommunication Standardization Sector, <em>Interface between Data Terminal Equipment (DTE) and Data Circuit-terminating Equipment (DCE) for terminals operating in the packet mode and connected to public data networks by dedicated circuit</em>, ITU, October 1996, available at: <a href="https://www.itu.int/rec/T-REC-X.25-199610-I/en" hreflang="en" target="_blank">https://www.itu.int/rec/T-REC-X.25-199610-I/en</a>.</p>
+<p><a name="sip_deprecie"></a><strong>(<a style="text-decoration: none;" href="#sip_deprecie_text">4</a>)</strong>: Matt Fredrickson, <em>PSA: chan_sip status changed to “deprecated” &amp; Asterisk 17.0.0-rc2 Release</em>, Asterisk.org, 25<sup>th</sup> september 2019, available at: <a href="https://www.asterisk.org/deprecating-chan_sip-asterisk-17-0-0-rc2-release/" hreflang="en" target="_blank">https://www.asterisk.org/deprecating-chan_sip-asterisk-17-0-0-rc2-release/</a>.</p>
+<p><a name="problematique_traversee_nat"></a><strong>(<a style="text-decoration: none;" href="#problematique_traversee_nat_text">5</a>)</strong>: Y. Yeryomin, F. Evers and J. Seitz, <em>II. The NAT and firewall problem</em> <strong>In</strong>: <em>Solving the firewall and NAT traversal issues for SIP-based VoIP</em>, International Conference on Telecommunications, p.1-2, July 2008, DOI: 10.1109/ICTEL.2008.4652645, available at: <a href="https://www.researchgate.net/publication/224341038_Solving_the_firewall_and_NAT_traversal_issues_for_SIP-based_VoIP" hreflang="en" target="_blank">https://www.researchgate.net/publication/224341038_Solving_the_firewall_and_NAT_traversal_issues_for_SIP-based_VoIP</a>.</p>
+<p><a name="alaw_ulaw_alcatel"></a><strong>(<a style="text-decoration: none;" href="#alaw_ulaw_alcatel_text">6</a>)</strong>: Alcatel-Lucent, <em>Audio characteristics</em> <strong>In</strong>: <em>Alcatel-Lucent IP Touch 4008/4018 Extended Edition Phones</em>, p.2, 2013, available at: <a href="https://assets.bmdstatic.com/assets/Data/brochure/SKU01413265_2.pdf" hreflang="en" target="_blank">https://assets.bmdstatic.com/assets/Data/brochure/SKU01413265_2.pdf</a>.</p>
+<p><a name="alaw_ulaw_geo"></a><strong>(<a style="text-decoration: none;" href="#alaw_ulaw_geo_text">7</a>)</strong>: Wikipedia, <em>G.711</em>, 20<sup>th</sup> august 2021, available at: <a href="https://en.wikipedia.org/wiki/G.711" hreflang="en" target="_blank">https://en.wikipedia.org/wiki/G.711</a>.</p>
+<p><a name="extensions_conf"></a><strong>(<a style="text-decoration: none;" href="#extensions_conf_text">8</a>)</strong>: Malcolm Davenport, <em>Answer, Playback, and Hangup Applications</em> <strong>In</strong>: <em>Asterisk Documentation</em>, Asterisk.org, 19<sup>th</sup> december 2013, available at: <a href="https://wiki.asterisk.org/wiki/display/AST/Answer%2C+Playback%2C+and+Hangup+Applications" hreflang="en" target="_blank">https://wiki.asterisk.org/wiki/display/AST/Answer%2C+Playback%2C+and+Hangup+Applications</a>.</p>

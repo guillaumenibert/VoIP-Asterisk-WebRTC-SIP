@@ -1,33 +1,36 @@
 <div align="center">
 <br>
-<img src="https://www.utc.fr/wp-content/uploads/sites/28/2019/05/SU-UTC18-70.svg" alt="Université de Technologie de Compiègne" width="400">
+<img src="https://www.utc.fr/wp-content/uploads/sites/28/2019/05/SU-UTC18-70.svg" alt="University of Technology of Compiègne" width="400">
 <br>
 <br>
 
-# TZ - Mise en place d'une communication VoIP entre un Raspberry Pi et un téléphone IP
+# Setting up a VoIP communication between a Raspberry Pi and an IP phone using an Asterisk IP PBX server
 
 
 **Guillaume Nibert  
-Encadrant : Dr. Ahmed Lounis**
+Supervisor: [Dr. Ahmed Lounis](https://www.hds.utc.fr/~lounisah/dokuwiki/)**
 
 </div>
 
-## [Contexte](README.md)
+## [Context](README.md)
 
-## 1. Protocole SIP et communication VoIP
+## 1. SIP protocol and VoIP communication
 
-Les premières questions à se poser avant de démarrer la mise en place de cette infrastructure sont : qu’est-ce que la VoIP ? Qu’est-ce que le protocole SIP et quel est son rapport avec la VoIP ? Quel est le lien entre le protocole SIP et le protocole RTP ?
-
-Pour répondre à la première question, il faut reprendre la pile d’Internet (suite des protocoles Internet).
+<p style="text-align: justify; text-indent:  3em;">
+The first questions to ask before starting the implementation of this infrastructure are: What is VoIP? What is SIP and how does it relate to VoIP? What is the relationship between SIP and RTP?
+</p>
+<p style="text-align: justify; text-indent:  3em;">
+Answering the first question requires understanding the internet stack (Internet protocol suite).
+</p>
 
 <div align="center">
 
 <table>
     <thead>
         <tr>
-            <th>Modèle OSI</th>
+            <th style="min-width: 120px">OSI Model</th>
             <th></th>
-            <th>Modèle TCP/IP</th>
+            <th>TCP/IP Model</th>
         </tr>
     </thead>
     <tbody>
@@ -37,7 +40,7 @@ Pour répondre à la première question, il faut reprendre la pile d’Internet 
             <td rowspan=3>SIP, HTTP, SMTP, FTP, RTP...</td>
         </tr>
         <tr>
-            <td>Présentation</td>
+            <td>Presentation</td>
         </tr>
         <tr>
             <td>Session</td>
@@ -48,62 +51,73 @@ Pour répondre à la première question, il faut reprendre la pile d’Internet 
             <td>UDP/TCP</td>
         </tr>
         <tr>
-            <td>Réseau</td>
+            <td>Network</td>
             <td></td>
             <td>IP</td>
         </tr>
         <tr>
-            <td>Liaison</td>
+            <td>Data link</td>
             <td></td>
             <td>802.3 MAC, 802.11 MAC, EAP...</td>
         </tr>
         <tr>
-            <td>Physique</td>
+            <td>Physical</td>
             <td></td>
             <td>802.3 PHY, 802.11 PHY, cuivre, fibre optique...</td>
         </tr>
     </tbody>
 </table>
-
-*(Figure 2 - Pile protocolaire de l'internet)*
-
 </div>
+<p style="text-align: center;">
+    <i>(Figure 2 - Internet protocol stack)</i>
+</p>
 
-VoIP signifie *Voice over Internet Protocol*, la voix est concrètement un signal analogique qui peut être acquis au moyen d’un microphone puis encodé numériquement via un convertisseur analogique → numérique. Une fois encodée, il est possible de faire passer la donnée dans la pile protocolaire de la suite des protocoles Internet. Dans ce schéma, il est donc possible de transférer la voix encodée via par exemple le protocole HTTP, transportée en TCP, dans un réseau IP via une liaison Ethernet vers un autre périphérique utilisant cette même pile protocolaire. Attention, tous les protocoles applicatifs ne sont pas forcément appropriés au transfert de voix encodées par exemple. Certains sont appropriés à pour réaliser de la communication en temps réel, par exemple la transmission de voix encodées (RTP), d’autres pour l’établissement d’une communication (SIP)...
-
-SIP est le protocole permettant d’établir la communication entre des points de terminaison. Typiquement, un point de terminaison se comporte dans un premier temps comme un client SIP pour contacter un autre point de terminaison. Il interroge d’abord un serveur SIP qui lui fournit les informations sur l’identité de cet autre point de terminaison et comment y accéder dans le réseau IP. Une fois les informations reçues, la communication s’effectue directement entre les deux points de terminaisons via le protocole RTP (*Real-time Transport Protocol*). Ce dernier protocole transmet la voix encodée. Une fois la communication terminée, SIP reprend à nouveau le relais pour fermer la connexion (session).
+<p style="text-align: justify; text-indent:  3em;">
+    VoIP stands for <i>Voice over Internet Protocol</i>, voice is specifically an analogue signal which can be acquired by means of a microphone and then digitally encoded using an analogue-to-digital converter. Once encoded, the data can be passed through the Internet protocol stack. In this diagram, it is therefore possible to transfer voice encoded using the HTTP protocol, transported in TCP, in an IP network via an Ethernet link to another device using this same protocol stack. Note that not all application protocols are necessarily suitable for transferring encoded voice. Some are suitable for real-time communication, e.g. transmission of encoded voice (RTP), others for establishing a communication (SIP)...
+</p>
+<p style="text-align: justify; text-indent:  3em;">
+    SIP <i>(Session Initiation Protocol)</i> is the protocol that allows establishing a communication between endpoints. Typically, an endpoint initially acts as a SIP client to contact another endpoint. It first queries a SIP server which provides it with information about the identity of this other endpoint and how to access it in the IP network. Once the information has been received, communication takes place directly between the two endpoints via the <i>Real-time Transport Protocol</i> (RTP). This protocol transmits the encoded voice. Once the communication is over, SIP takes over again to close the connection (session). 
+</p>
 
 <div align="center">
-<img src="figures/figure03_sip_3cx.png" alt="Figure 3 - Établissement et fin de la communication">
+<img src="figures/figure03_sip_3cx.png" style="background-color:#EEF0F2;" alt="Figure 3 - Establishment and termination of a VoIP communication using SIP - attribution: 3cx.com">
 
-*(Figure 3 - Établissement et fin de la communication - crédits : [3cx.fr](https://www.3cx.fr/voip-sip/sip/))*
-
+<p style="text-align: center;">
+    <i>(Figure 3 - Establishment and termination of a VoIP communication using SIP - attribution: <a href="https://www.3cx.com/pbx/sip/" hreflang="en" target="_blank">3cx.com</a>)</i>
+</p>
 </div>
 
-Pour revenir à notre schéma, pour l’établissement d’une communication (par exemple Raspberry Pi appelle Alcatel) :
-
-**a.** RPi envoie une demande de contact à Alcatel (Invite) en passant par Asterisk. Alcatel reçoit la réponse Invite, sonne et indique qu’il sonne à RPi. Quelqu’un décroche l’Alcatel, le contact est établi, donc...  
-**b.** ...RTP prend le relais et transfère les voix entre les deux appareils en connexion directe (sans passer par Asterisk).
+<p style="text-align: justify; text-indent:  3em;">
+Going back to our very first diagram, for the establishment of a communication (e.g. Raspberry Pi calls Alcatel):
+</p>
+<p style="text-align: justify; text-indent:  3em;">
+    <ol type="a" style="text-align: justify">
+        <li>RPi sends a contact request to Alcatel (Invite) through Asterisk. Alcatel receives the Invite response, rings and indicates RPi that it is ringing. Someone picks up the Alcatel, the contact is established, so...</li>
+        <li>...RTP takes over and transfers the voices between the two devices in direct connection (without going through Asterisk).</li>
+    </ol>
+</p>
 
 <div align="center">
-<img src="figures/figure04_sip_infra.png" alt="Figure 4 - Établissement d’une communication téléphonique entre le Raspberry Pi et le téléphone Alcatel IP Touch 4018 EE">
+<img src="figures/figures_en/figure04_sip_infra.png" alt="Figure 4 - Établissement d’une communication téléphonique entre le Raspberry Pi et le téléphone Alcatel IP Touch 4018 EE">
 
 *(Figure 4 - Établissement d’une communication téléphonique entre le Raspberry Pi et le téléphone Alcatel IP Touch 4018 EE)*
 
 </div>
 
-Une fois la communication terminée (une personne raccroche), SIP se charge de fermer la session entre les deux participants.
+<p style="text-align: justify; text-indent:  3em;">
+Once the call is over (one person hangs up), SIP takes care of closing the session between the two participants.
+</p>
 
-## [2. Mise en place d'un serveur PABX IP Asterisk](2_ipbx_asterisk.md)
+## [2. Implementation of an Asterisk IP PBX server](2_ipbx_asterisk.md)
 
-## [3. Installation et configuration d'un client SIP sur le Raspberry Pi](3_install_client_sip_rpi.md)
+## [3. Installation and configuration of a SIP client on the Raspberry Pi](3_install_client_sip_rpi.md)
 
-## [4. Configuration du téléphone IP](4_config_alcatel.md)
+## [4. IP phone configuration](4_config_alcatel.md)
 
-## [5. Tests de communication](5_tests_com_sip.md)
+## [5. Communication tests](5_tests_com_sip.md)
 
-## [6. Client SIP JavaScript utilisant WebRTC](6_sip_webrtc.md)
+## [6. JavaScript SIP client using WebRTC](6_sip_webrtc.md)
 
 ## [Conclusion](Conclusion.md)
 
-## [Sigles](Sigles.md)
+## [Abbreviations](Abbreviations.md)

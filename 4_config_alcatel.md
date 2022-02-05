@@ -1,130 +1,168 @@
 <div align="center">
 <br>
-<img src="https://www.utc.fr/wp-content/uploads/sites/28/2019/05/SU-UTC18-70.svg" alt="Université de Technologie de Compiègne" width="400">
+<img src="https://www.utc.fr/wp-content/uploads/sites/28/2019/05/SU-UTC18-70.svg" alt="University of Technology of Compiègne" width="400">
 <br>
 <br>
 
-# TZ - Mise en place d'une communication VoIP entre un Raspberry Pi et un téléphone IP
-
+# Setting up a VoIP communication between a Raspberry Pi and an IP phone using an Asterisk IP PBX server
 
 **Guillaume Nibert  
-Encadrant : Dr. Ahmed Lounis**
+Supervisor: [Dr. Ahmed Lounis](https://www.hds.utc.fr/~lounisah/dokuwiki/)**
 
 </div>
 
-## [Contexte](README.md)
+## [Context](README.md)
 
-## [1. Protocole SIP et communication VoIP](1_sip_voip.md)
+## [1. SIP protocol and VoIP communication](1_sip_voip.md)
 
-## [2. Mise en place d'un serveur PABX IP Asterisk](2_ipbx_asterisk.md)
+## [2. Implementation of an Asterisk IP PBX server](2_ipbx_asterisk.md)
 
-## [3. Installation et configuration d'un client SIP sur le Raspberry Pi](3_install_client_sip_rpi)
+## [3. Installation and configuration of a SIP client on the Raspberry Pi](3_install_client_sip_rpi)
 
-## 4. Configuration du téléphone IP
+## 4. IP phone configuration
 
-Le téléphone Alcatel IP Touch 4018 EE est un téléphone possédant deux modes de fonctionnement.
-1. Le mode NOE (New Office Environment) : protocole de communication propriétaire développé par Alcatel/Lucent ;
-2. Le mode SIP.
+<p style="text-align: justify; text-indent:  3em;">
+The Alcatel IP Touch 4018 EE is a telephone with two operating modes:
+</p>
 
-Il faut en premier lieu, le configurer en mode SIP. Ensuite, il a la particularité de se configurer automatiquement en téléchargeant automatiquement ses fichiers de configuration et ses fichiers de firmwares sur un serveur *TFTP*, *HTTP* ou *HTTPS* au moment du démarrage.
+1. NOE (New Office Environment) mode: proprietary communication protocol developed by Alcatel/Lucent;
+2. SIP mode.
 
-Parmi les trois protocoles, le plus sécurisé est l’*HTTPS*. Nous avons essayé de le mettre en place avec des certificats RSA 2048 bits et des *cipher suites* compatibles avec des équipements anciens. Malheureusement, étant en réseau local, le téléphone Alcatel semble ne pas accepter les certificats auto signés *(selon ce forum, il semble que les téléphones Alcatel IP Touch ne fassent confiance qu’à l’autorité de certification délivrée par l’entreprise Alcatel-Lucent. Le certificat racine issu d’Alcatel-Lucent semble se trouver au sein du téléphone : https://www.alcatelunleashed.com/viewtopic.php?t=28822. Nous n’avons pas les moyens d’obtenir un certificat à partir de l’autorité de certification d’Alcatel-Lucent)*. Compte-tenu de cette problématique, il ne reste que deux choix : *TFTP* ou *HTTP*. Ces protocoles applicatifs ne sont pas très sécurisés : pas d’authentification, transfert des données en clair sur le réseau... Le choix se fait donc au niveau des protocoles de transport : *TFTP* utilise nécessairement *UDP*, mode non connecté alors que *HTTP* peut être configuré pour utiliser *TCP*, mode connecté, qui intègre une détection et correction des erreurs. Les programmes transmis sont des firmwares, si des données sont corrompues à cause d’une erreur, cela pourrait bricker le téléphone. Privilégions donc le protocole *HTTP* associé au protocole *TCP*. Nous allons donc mettre en place un serveur *HTTP [NGINX](https://www.nginx.com/)* car léger, dont le seul but est de fournir les firmwares et les fichiers de configuration au téléphone Alcatel IP Touch. Il sera accessible à l’adresse ***192.168.1.80*** au niveau du port ***80***.
-
-Bien évidemment, si cela est possible, pour une mise en production, nous recommandons d’utiliser *HTTPS*.
+<p style="text-align: justify; text-indent:  3em;">
+First, it must be configured in SIP mode. Then, it has the particularity to configure itself automatically by downloading its configuration files and its firmware files on a <i>TFTP</i>, <i>HTTP</i> or <i>HTTPS</i> server at startup.
+</p>
+<p style="text-align: justify; text-indent:  3em;">
+    Among the three protocols, the most secure is <i>HTTPS</i>. We tried to implement it with 2048 bit RSA certificates and <i>cipher suites</i> compatible with older equipment. Unfortunately, being in a local network, the Alcatel phone seems not to accept self-signed certificates <i>(according to this forum, it seems that Alcatel IP Touch phones only trust the certification authority issued by the Alcatel-Lucent company. The root certificate from Alcatel-Lucent seems to be inside the phone: <br><a href "https://www.alcatelunleashed.com/viewtopic.php?t=28822" hreflang="en" target="_blank">https://www.alcatelunleashed.com/viewtopic.php?t=28822</a>. We do not have the means to get a certificate from the Alcatel-Lucent certification authority)</i>. Given this problem, there are only two choices: <i>TFTP</i> or <i>HTTP</i>. These application protocols are not very secure: no authentication, transfer of data in clear text over the network... The choice is therefore made at the level of the transport protocols: <i>TFTP</i> necessarily uses <i>UDP</i>, a non-connected mode, whereas <i>HTTP</i> can be configured to use <i>TCP</i>, a connected mode, which includes error detection and correction. The programs transmitted are firmware, if data is corrupted due to an error, it could brick the phone. So let's use the <i>HTTP</i> protocol associated with the <i>TCP</i> protocol. We will therefore set up a lightweight <i><a href="https://www.nginx.com/" hreflang="en" target="_blank">NGINX</a> HTTP</i> server, whose sole purpose is to provide firmware and configuration files to the Alcatel IP Touch phone. It will be accessible at the address <b><i>192.168.1.80</i></b> on port <b><i>80</i></b>.
+</p>
+<p style="text-align: justify; text-indent:  3em;">
+    Of course, if possible, for production use, we recommend using <i>HTTPS</i>.
+</p>
 
 <div align="center">
-<img src="figures/figure13_alcatel_http.png" alt="Figure 13 - Récupération des fichiers de configuration du téléphone Alcatel via HTTP">
+<img src="figures/figure13_alcatel_http.png" alt="Figure 13 - Retrieving Alcatel phone configuration files via HTTP">
 
-*(Figure 13 - Récupération des fichiers de configuration du téléphone Alcatel via HTTP)*
+*(Figure 13 - Retrieving Alcatel phone configuration files via HTTP)*
 
 </div>
 
-### Informations sur la configuration
+### Configuration information
 
 <div align="center">
 
-| Adresse IP du téléphone Alcatel. Ceci est à configurer sur le routeur (cf. annexe A1.15 du rapport PDF). | 192.168.1.81       |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| Adresse IP et port du serveur HTTP                                                                                                                                                                         | 192.168.1.80:80    |
-| Alimentation PoE reliée au routeur                                                                                                                                                                         | [TP-Link TL-POE150S](https://www.tp-link.com/fr/business-networking/accessory/tl-poe150s/) |
+<table>
+<thead>
+<tr>
+<th>IP address of the Alcatel phone. This must be configured on the router (see appendix A1.15 of the PDF report).</th>
+<th style="min-width: 110px;">192.168.1.81</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>IP address and port of the HTTP server</td>
+<td>192.168.1.80:80</td>
+</tr>
+<tr>
+<td>PoE Injector connected to the router</td>
+<td><a href="https://www.tp-link.com/en/business-networking/accessory/tl-poe150s/" hreflang="en" target="_blank">TP-Link TL-POE150S</a></td>
+</tr>
+</tbody>
+</table>
 
 </div>
 
 ### Configuration du téléphone en mode SIP - sur l'appareil
 
-Brancher le téléphone à l’injecteur PoE puis suivre les instructions du manuel d’installation ci-dessous (captures d’écrans de la procédure).
+<p style="text-align: justify; text-indent:  3em;">
+Connect the phone to the PoE injector and follow the instructions in the installation manual below (screenshots of the procedure).
+</p>
 
 <div align="center">
-<img src="figures/figure14_alcatel_manual1.png" alt="Figure 14 - Configuration du mode SIP sur l'Alcatel IP Touch 4018 EE - 1">
-<img src="figures/figure14_alcatel_manual2.png" alt="Figure 14 - Configuration du mode SIP sur l'Alcatel IP Touch 4018 EE - 2">
+<img src="figures/figure14_alcatel_manual1.png" alt="Figure 14 - SIP mode configuration on the Alcatel IP Touch 4018 EE - 1">
+<img src="figures/figure14_alcatel_manual2.png" alt="Figure 14 - SIP mode configuration on the Alcatel IP Touch 4018 EE - 2">
 
-(Figure 14 - Alcatel-Lucent, *3. SIP stand-alone mode* **In** : *IP Touch 4008/4018 Extended Edition - SIP Phone Installation Guide - 8AL90824AAAA ed02*, p.4-5, Août 2010, Disponible sur : https://www.cluster2.hostgator.co.in/files/writeable/uploads/hostgator136107/file/iptouchsipphoneinstallationguide-ed02.pdf)
+(Figure 14 - Alcatel-Lucent, *3. SIP stand-alone mode* **In**: *IP Touch 4008/4018 Extended Edition - SIP Phone Installation Guide - 8AL90824AAAA ed02*, p.4-5, August 2010, available at: https://www.cluster2.hostgator.co.in/files/writeable/uploads/hostgator136107/file/iptouchsipphoneinstallationguide-ed02.pdf)
 
 </div>
 
-Une fois passé en mode SIP, il faut configurer l’adresse IP du téléphone afin qu’il soit en accord avec celui défini dans le routeur (**192.168.1.81**), il faut également lui fournir  l’adresse IP du serveur *HTTP* et son port.
+<p style="text-align: justify; text-indent:  3em;">
+Once in SIP mode, the phone's IP address must be configured to match the one defined in the router (<b>192.168.1.81</b>), and it must also be provided with the IP address of the <i>HTTP</i> server and its port. 
+</p>
 
-1. Brancher le téléphone à l’injecteur PoE.
-2. À la ***phase 2/5 network setup***, appuyer sur ***“i”*** puis sur ***“#”*** jusqu’à l'apparition du menu ***“MAC address”***.
-3. S’il y a un mot de passe, entrer ***000000***.
-4. Descendre jusqu’à ***IP Parameters***, puis cliquer sur ***OK***.
-5. Descendre, puis sélectionner ***IP mode: Static***.
-6. Descendre, puis entrer l’adresse IP : ***IP@: 192.168.1.81***
-7. Descendre, puis entrer le masque de sous réseau : ***Subnet: 255.255.255.0***
-8. Descendre, puis entrer l’adresse IP du routeur : ***Router: 192.168.1.254***
-9. Descendre, puis sélectionner dans DL Scheme: ***HTTP***.
-10. Descendre, puis sélectionner Use ***Defaultport***.
-11. Descendre, puis sélectionner l’adresse du serveur *HTTP* : ***DL Addr: 192.168.1.80***
-12. Descendre, puis sélectionner le port du serveur *HTTP* : ***DL Port: 80***
-13. Descendre, ne pas sélectionner de *VLAN*.
-14. Descendre jusqu’à sauvegarder ***save***, puis cliquer sur ***OK***.
+1. Connect the phone to the PoE injector.
+2. At ***phase 2/5 network setup***, press ***" i "*** then ***" #"*** until the ***" MAC address "*** menu appears.
+3. If there is already a password configured, enter ***000000***.
+4. Scroll down to ***IP Parameters***, then click ***OK***.
+5. Scroll down, then select ***IP mode: Static***.
+6. Scroll down, then enter the IP address: ***IP@: 192.168.1.81***
+7. Scroll down, then enter the subnet mask: ***Subnet: 255.255.255.0***
+8. Scroll down, then enter the router IP address: ***Router: 192.168.1.254***
+9. Scroll down, then select from DL Scheme: ***HTTP***.
+10. Scroll down, then select Use ***Defaultport***.
+11. Scroll down, then select the *HTTP* server address: ***DL Addr: 192.168.1.80***
+12. Scroll down, then select the *HTTP* server port: ***DL Port: 80***
+13. Scroll down, do not select a *VLAN*.
+14. Scroll down to save ***save***, then click ***OK***.
 
-La configuration sur l’appareil est terminée, cependant pour l’instant il ne va cesser de redémarrer en boucle puisque le serveur *HTTP* n’existe pas encore, ni les fichiers de configuration associés et les firmwares du téléphone.
+<p style="text-align: justify; text-indent:  3em;">
+The configuration on the device is complete, however for now it will keep restarting in a loop as the <i>HTTP</i> server does not yet exist, nor do the associated configuration files and phone firmwares.
+</p>
 
-### Installation du serveur HTTP
+### HTTP server installation
 
-On va donc revenir sur notre machine virtuelle Debian et installer un serveur HTTP.
+<p style="text-align: justify;">
+So let's go back to our Debian virtual machine and install an HTTP server.
+</p>
 
-1. Se connecter en SSH à la machine `asterisktz`.
+1. Connect via SSH to the `asterisktz` machine.
 
 ```bash
 ssh asterisktz@192.168.1.80 -p 22
 ```
 
-2. Installer le serveur HTTP ***nginx***.
+2. Install ***nginx*** HTTP server..
 
 ```bash
 sudo apt install nginx
 sudo systemctl status nginx
 ```
-
-S’il est ***active***, c’est qu’il fonctionne sinon, il faut le lancer (`sudo systemctl start nginx`). Normalement il est configuré pour se lancer automatiquement au démarrage, si tel n’est pas le cas alors exécuter la commande suivante :
+<p style="text-align: justify;">
+    If the output shows <b><i>active</i></b> then it is working, otherwise you need to run it <code>sudo systemctl start nginx</code>. Normally it is configured to start automatically at startup, if this is not the case then run the following command: 
+</p>
 
 ```bash
 sudo /lib/systemd/systemd-sysv-install enable nginx
 ```
+<p style="text-align: justify;">
+    The <i>HTTP</i> server is ready, all that remains is to transfer the firmware, the information on the SIP account dedicated to the Alcatel phone and the IP address of the Asterisk server.
+</p>
 
-Le serveur *HTTP* est prêt, il ne reste plus qu’à transférer les firmwares, les informations sur le compte SIP dédié au téléphone Alcatel et l’adresse IP du serveur Asterisk.
+### Transfer of configuration files and firmware to the Alcatel phone
 
-### Transfert des fichiers de configuration et des firmwares vers le téléphone Alcatel
+<p style="text-align: justify;">
+    In practise, there are 4 files to transfer to the HTTP server <b>(<a style="text-decoration: none;" href="#alcatel_conf" name="alcatel_conf_text">10</a>)</b>:
+    <ul style="text-align: justify;">
+        <li><b><i><code>sipconfig.txt</code></i></b>: global configuration file, contains the settings to be applied to all Alcatel IP Touch 4018EE phones connected to the network.</li>
+        <li><b><i><code>sipconfig-MacAddress.txt</code></i></b>: configuration file specific to a single Alcatel IP Touch 4018EE phone. This is the MAC address of the phone in question which must be written in lower case.</li>
+        <li><b><i><code>noesip4018</code></i></b>: proprietary firmware containing the SIP protocol application for the Alcatel IP Touch 4018EE.</li>
+        <li><b><i><code>datsip4018</code></i></b>: resources containing ringtones and different melodies.</li>
+    </ul>
+</p>
+<p style="text-align: justify; text-indent: 3em;">
+As the Alcatel-Lucent website does not necessarily provide the appropriate documentation for the structure of the <b><i>sipconfig.txt</i></b> files, we have based ourselves on an example configuration file created by Florian Duraffourg, a graduate of Télécom SudParis: 
+<a href="https://github.com/fduraffourg/utils/blob/master/iptouch/sipconfig-reynoud.txt" hreflang="en" target="_blank">https://github.com/fduraffourg/utils/blob/master/iptouch/sipconfig-reynoud.txt</a>.
+</p>
+<p style="text-align: justify; text-indent: 3em;">
+Concerning the firmwares, also difficult to find on the official Alcatel-Lucent website, we found them on the Alcatel Unleashed forum through fbird's post on March 21st 2016: 
+<a href="https://www.alcatelunleashed.com/viewtopic.php?p=95015#p95015" hreflang="en" target="_blank">https://www.alcatelunleashed.com/viewtopic.php?p=95015#p95015</a>.
+</p>
+<p style="text-align: justify; text-indent: 3em;">
+    The most important file is <b><i>sipconfig-MacAddress.txt</i></b> whose important content in bold and green is as follows (we have voluntarily removed the non-essential parts, you will find the complete file in the project repository available in the following paragraph):<br>  
+<i><span style="font-size:16px">Note: we added comments in this report, to avoid mistakes, you should take the one located in the repository.</span></i>
+</p>
 
-Concrètement il y a 4 fichiers à transférer sur le serveur HTTP **([10](#alcatel_conf))** :
- - ***`sipconfig.txt`*** : fichier global de configuration, contient les paramètres à appliquer à tous les téléphones Alcatel IP Touch 4018EE connectés au réseau.
-- ***`sipconfig-MacAddress.txt`*** : fichier de configuration spécifique à un seul téléphone Alcatel IP Touch 4018EE. Il s’agit de l’adresse MAC du téléphone en question qui doit être écrite en minuscules.
-- ***`noesip4018`*** : firmware propriétaire contenant l’application gérant le protocole SIP pour l’Alcatel IP Touch 4018EE.
-- ***`datsip4018`*** : ressources contenant les sonneries et différentes mélodies.
+*`sipconfig-MacAddress.txt` (green fields are to be taken into account)*
 
-Le site du fabricant Alcatel-Lucent ne proposant pas forcément une documentation appropriée pour connaître la structure des fichiers ***`sipconfig.txt`***, nous nous sommes basés sur un fichier d’exemple de configuration réalisé par Florian Duraffourg, diplômé de Télécom SudParis : 
-https://github.com/fduraffourg/utils/blob/master/iptouch/sipconfig-reynoud.txt
-Concernant les firmwares, également difficiles à trouver sur le site officiel d’Alcatel-Lucent, nous les avons trouvé sur le forum Alcatel Unleashed par le biais du post de fbird le 21 mars 2016 : 
-https://www.alcatelunleashed.com/viewtopic.php?p=95015#p95015
-
-Le fichier le plus important est ***`sipconfig-MacAddress.txt`*** dont le contenu important en gras et en vert est le suivant (nous avons volontairement enlevé les parties non essentielles, vous retrouverez le fichier complet dans le dépôt du projet disponible au paragraphe suivant) :  
-*Remarque : nous avons ajouté des commentaires dans ce rapport, pour éviter les erreurs prendre celui du dépôt.*
-
-*`sipconfig-MacAddress.txt` (commenté)*
-
-```
+<pre>
 [...]
 
 
@@ -135,9 +173,9 @@ Le fichier le plus important est ***`sipconfig-MacAddress.txt`*** dont le conten
 ## If no DNS, use the SIP proxy address instead
 ###########################################################################
 
-   dns_addr=192.168.1.254  # on prend le DNS de la Freebox
+   <span style="color:green;">dns_addr=192.168.1.254  #  DNS of the Freebox (or another router)</span>
    dns2_addr=
-   hostname=192.168.1.254
+   <span style="color:green;">hostname=192.168.1.254</span>
 
 [sip]
 
@@ -145,7 +183,7 @@ Le fichier le plus important est ***`sipconfig-MacAddress.txt`*** dont le conten
 ## Domain name : IP address, FQDN or domain name (see the SIP proxy config)
 ###########################################################################
 
-   domain_name=192.168.1.80  # domaine du serveur Asterisk
+   <span style="color:green;">domain_name=192.168.1.80  # Asterisk server's domain</span>
 
 ###########################################################################
 ## Primary SIP proxy and SIP registrar settings
@@ -156,10 +194,10 @@ Le fichier le plus important est ***`sipconfig-MacAddress.txt`*** dont le conten
 ## SIP registrar UDP port : by default 5060
 ###########################################################################
 
-   proxy_addr=192.168.1.80
+   <span style="color:green;">proxy_addr=192.168.1.80
    proxy_port=5060
    registrar_addr=192.168.1.80
-   registrar_port=5060
+   registrar_port=5060</span>
    outbound_proxy_addr=
    outbound_proxy_port=
 
@@ -176,15 +214,15 @@ Le fichier le plus important est ***`sipconfig-MacAddress.txt`*** dont le conten
 ##          2 = TCP
 ###########################################################################
 
-   proxy2_addr=192.168.1.80
+   <span style="color:green;">proxy2_addr=192.168.1.80
    proxy2_port=5060
    registrar2_addr=192.168.1.80
-   registrar2_port=5060
+   registrar2_port=5060</span>
    outbound_proxy2_addr=
    outbound_proxy2_port=
-   pcs_addr=192.168.1.80
+   <span style="color:green;">pcs_addr=192.168.1.80
    pcs_port=5060
-   sip_transport_mode_survi=0 # dans notre cas, ce sera de l’UDP
+   sip_transport_mode_survi=0 # in our case, it will be UDP</span>
    option_timer=120
 
 ###########################################################################
@@ -221,11 +259,11 @@ Le fichier le plus important est ***`sipconfig-MacAddress.txt`*** dont le conten
 ## Authentication password : If no authentication, leave empty
 ###########################################################################
 
-   authentication_realm=192.168.1.80  # l’authentification se fait sur Asterisk
-   authentication_name=alcatel        # nom d’utilisateur puis mot de passe
+   <span style="color:green;">authentication_realm=192.168.1.80  # authentication is done on the Asterisk server
+   authentication_name=alcatel        # username and password
    authentication_password=11111111
    user_name=alcatel
-   display_name=Alcatel IP Touch      # nom d’affichage quand on appelle
+   display_name=Alcatel IP Touch      # display name when calling</span>
 
 [...]
 
@@ -241,16 +279,19 @@ Le fichier le plus important est ***`sipconfig-MacAddress.txt`*** dont le conten
 ## The daylight saving settings HAVE to be changed each year.
 ###########################################################################
 
-   sntp_addr=192.168.1.254       # Pour synchroniser l’heure du téléphone avec
-   timezone=UT::60:032802:103103 # le serveur NTP intégré de la Freebox
-                                 # La timezone est à changer chaque année, elle est réglée en fonction de la zone GMT et gère l’heure d’été et l’heure d’hiver.
+   <span style="color:green;">sntp_addr=192.168.1.254       # To synchronise the phone's time
+   timezone=UT::60:032802:103103 # with the Freebox's built-in NTP server
+                                 # The time zone is to be changed every year,
+                                 # it is set according to the GMT zone and
+                                 # manages summer and winter time.</span>
 
 [...]
 
 [init]
 
 ###########################################################################
-## For IP Touch with SIP binary in 1.xx, 2.00.10 and 2.00.20, equal or greater than 2.00.81
+## For IP Touch with SIP binary in 1.xx, 2.00.10 and 2.00.20, equal
+## or greater than 2.00.81
 ##     mode 0 = SIP
 ##     mode 1 = NOE
 ##
@@ -259,7 +300,7 @@ Le fichier le plus important est ***`sipconfig-MacAddress.txt`*** dont le conten
 ##     mode 1 = SIP
 ###########################################################################
 
-   application_mode=0     # Mode SIP (en fonction des version des firmwares)
+   <span style="color:green;">application_mode=0     # SIP mode (depending on firmware version)</span>
 
 [audio]
 
@@ -281,8 +322,8 @@ Le fichier le plus important est ***`sipconfig-MacAddress.txt`*** dont le conten
 ##       1 = VAD used
 ###########################################################################
 
-   tone_country=1    # à régler en fonction des normes utilisés en France
-   dtmf_type=1
+   <span style="color:green;">tone_country=1    # to be set according to the standards used in France
+   dtmf_type=1</span>
    dtmf_level=0
    dtmf_avt_payload_type=96
    vad=0
@@ -304,7 +345,7 @@ Le fichier le plus important est ***`sipconfig-MacAddress.txt`*** dont le conten
 ## Speed dial numbers (first and last name, URI)
 ###########################################################################
 
-   admin_password=000000   # mot de passe admin lorsque on appuie sur i puis #
+   <span style="color:green;">admin_password=000000   # admin password when pressing i then #.</span>
    bluetooth_parameters=blue
    supported_language=0
    remote_forward_code=
@@ -325,27 +366,34 @@ Le fichier le plus important est ***`sipconfig-MacAddress.txt`*** dont le conten
    speed_dial_4_last_name=
    speed_dial_4_uri=
 [...]
-```
+    </pre>
 
-1. Télécharger l’ensemble de ces 2 fichiers de firmware (***`noesip4018`*** et ***`datsip4018`***, trouvés sur le forum Alcatel Unleashed) et les 2 fichiers de configuration (***`sipconfig.txt`*** et ***`sipconfig-MacAddress.txt`***), disponibles dans le dépôt du projet : https://gitlab.utc.fr/nibertgu/tz-voip-raspberry-pi/-/tree/master/iptouch4018ee.
+<p style="text-align: justify;">
+    <ol style="text-align: justify;">
+        <li>Download all these 2 firmware files (<b><i><code>noesip4018</code></i></b> and <b><i><code>datsip4018</code></i></b>, found on the Alcatel Unleashed forum) and the 2 configuration files (<b><i><code>sipconfig.txt</code></i></b> and <b><i><code>sipconfig-MacAddress.txt</code></i></b>), available in the project repository: <a href="https://github.com/guillaumenibert/VoIP-Asterisk-WebRTC-SIP/tree/main/iptouch4018ee" hreflang="en" target="_blank">https://github.com/guillaumenibert/VoIP-Asterisk-WebRTC-SIP/tree/main/iptouch4018ee</a>.</li>
+        <li>Place them in the <code>/var/www/html</code> of the Debian virtual machine.</li>
+        <li>Connect the phone to the PoE injector to turn it on. The Alcatel IP Touch will fetch the latest firmware from the <i>HTTP NGINX</i> server, the configurations and will be connected to the Asterisk server.</li>
+    </ol>
+</p>
 
-2. Les placer dans le dossier `/var/www/html` de la machine virtuelle Debian.
+### Client-side testing
 
-3. Brancher le téléphone à l’injecteur PoE pour l’allumer. L’Alcatel IP Touch va chercher les derniers firmwares sur le serveur *HTTP NGINX*, les configurations et sera connecté au serveur Asterisk.
+<p style="text-align: justify; text-indent: 3em;">
+If the phone displays the date and time and does not restart in a loop, it is connected to the Asterisk server. 
+</p>
 
-### Vérification côté client
+### Server-side testing
 
-S’il affiche la date et l’heure et qu’il ne redémarre pas en boucle c’est qu’il est bien connecté au serveur Asterisk.
-
-### Vérification côté serveur
-
-Sur une console serveur, taper la commande `sudo asterisk -rvvv`.
-
-Une fois entrée, taper la commande `pjsip show endpoints`. Si le client SIP du Raspberry Pi est bien connecté alors la console renvoie ceci :
+<p style="text-align: justify; text-indent:  3em;">
+    On a server console, type the command <b><i>sudo asterisk -rvvv</i></b>.
+</p>
+<p style="text-align: justify; text-indent:  3em;">
+    Once entered, type the command <b><i>pjsip show endpoints</i></b>. If the Raspberry Pi's SIP client is connected then the console will return this:
+</p>
 
 *Output*
 
-```
+<pre>
 asterisktz*CLI> pjsip show endpoints
 
  Endpoint:  <Endpoint/CID.....................................>  <State.....>  <Channels.>
@@ -357,36 +405,38 @@ asterisktz*CLI> pjsip show endpoints
         Match:  <criteria.........................>
     Channel:  <ChannelId......................................>  <State.....>  <Time.....>
         Exten: <DialedExten...........>  CLCID: <ConnectedLineCID.......>
-==========================================================================================
+===============================================================================
 
- Endpoint:  alcatel/5001                                         Not in use    0 of inf
+<b><span style="color:deeppink;"> Endpoint:  alcatel/5001                                 Not in use    0 of inf
      InAuth:  alcatel/alcatel
-        Aor:  alcatel                                            1
-      Contact:  alcatel/sip:alcatel@192.168.1.81           8c02c0558c NonQual     nan
+        Aor:  alcatel                                        1
+      Contact:  alcatel/sip:alcatel@192.168.1.81       8c02c0558c NonQual  nan</span></b>
 
- Endpoint:  guillaume/5003                                       Unavailable   0 of inf
+ Endpoint:  guillaume/5003                               Unavailable   0 of inf
      InAuth:  guillaume/guillaume
-        Aor:  guillaume                                          1
+        Aor:  guillaume                                      1
 
- Endpoint:  rpi/5002                                             Not in use    0 of inf
+<span style="color:deeppink;"> Endpoint:  rpi/5002                                     Not in use    0 of inf
      InAuth:  rpi/rpi
-        Aor:  rpi                                                1
-      Contact:  rpi/sip:rpi@192.168.1.82;transport=udp     cec2f9dd2f NonQual     nan
+        Aor:  rpi                                            1
+      Contact:  rpi/sip:rpi@192.168.1.82;transport=udp cec2f9dd2f NonQual  nan</span>
 
 
 Objects found: 3
-```
+</pre>
 
-On remarque bien que le client a pour adresse IP ***192.168.1.81*** et qu’il est bien connecté. Le ***Not in use*** indique qu’il n’y a pas d’appel en cours. L’objectif de la partie suivante est de réaliser une communication entre les deux appareils.
+<p style="text-align: justify; text-indent:  3em;">
+    The client has an IP address of <b><i>192.168.1.81</i></b> and is connected. The information <b><i>"Not in use"</i></b> indicates that there is no call in progress.
+</p>
 
-## [5. Tests de communication](5_tests_com_sip.md)
+## [5. Communication tests](5_tests_com_sip.md)
 
-## [6. Client SIP JavaScript utilisant WebRTC](6_sip_webrtc.md)
+## [6. JavaScript SIP client using WebRTC](6_sip_webrtc.md)
 
 ## [Conclusion](Conclusion.md)
 
-## [Sigles](Sigles.md)
+## [Abbreviations](Abbreviations.md)
 
-## Référence de cette page
+## Reference on this page
 
-<a name="alcatel_conf"></a>**(10)** : Alcatel-Lucent, *3.3. Initializing an IP Touch 40x8 EE phone* **In** : *IP Touch 4008/4018 Extended Edition - SIP Phone Installation Guide - 8AL90824AAAA ed02*, p.7-8, Août 2010, Disponible sur : https://www.cluster2.hostgator.co.in/files/writeable/uploads/hostgator136107/file/iptouchsipphoneinstallationguide-ed02.pdf.
+<p><a name="alcatel_conf"></a><strong>(<a style="text-decoration: none;" href="#alcatel_conf_text">10</a>)</strong>: Alcatel-Lucent, <em>3.3. Initializing an IP Touch 40x8 EE phone</em> <strong>In</strong>: <em>IP Touch 4008/4018 Extended Edition - SIP Phone Installation Guide - 8AL90824AAAA ed02</em>, p.7-8, August 2010, available at: <a href="https://www.cluster2.hostgator.co.in/files/writeable/uploads/hostgator136107/file/iptouchsipphoneinstallationguide-ed02.pdf" hreflang="en" target="_blank">https://www.cluster2.hostgator.co.in/files/writeable/uploads/hostgator136107/file/iptouchsipphoneinstallationguide-ed02.pdf</a>.</p>

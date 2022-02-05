@@ -12,13 +12,15 @@ Encadrant : Dr. Ahmed Lounis**
 
 <br />
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC_BY--SA_4.0-brightgreen.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 
 ---
 
 <br />
 
-**À la racine de ce dépôt vous trouverez le rapport et la présentation PDF.**
+English version: <a href="https://guillaume.nibert.fr/voip-asterisk-rpi-ipphone-project/" hreflang="en">https://guillaume.nibert.fr/voip-asterisk-rpi-ipphone-project/</a>
+
+**Vous trouverez le rapport et la présentation PDF dans le dossier `/PDF`. Ces documents existent en anglais et en français**
 
 <br />
 

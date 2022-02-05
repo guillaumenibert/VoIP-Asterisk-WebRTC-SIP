@@ -12,7 +12,7 @@ Encadrant : Dr. Ahmed Lounis**
 
 <br />
 
-[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC_BY--SA_4.0-brightgreen.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
+[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC_BY--SA_4.0-yellow.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 
 ---
 
@@ -20,15 +20,11 @@ Encadrant : Dr. Ahmed Lounis**
 
 English version: <a href="https://guillaume.nibert.fr/voip-asterisk-rpi-ipphone-project/" hreflang="en">https://guillaume.nibert.fr/voip-asterisk-rpi-ipphone-project/</a>
 
-**Vous trouverez le rapport et la présentation PDF dans le dossier `/PDF`. Ces documents existent en anglais et en français**
+**Vous trouverez le rapport et la présentation PDF dans le dossier `/PDF`. Ces documents existent en anglais et en français.**
 
 <br />
 
-**Rapport PDF** : <a href="../../raw/main/TZ%20-%20Guillaume%20Nibert%20-%20Rapport%20-%20Mise%20en%20place%20d'une%20communication%20entre%20un%20Raspberry%20Pi%20et%20un%20t%C3%A9l%C3%A9phone%20IP.pdf" download target="_blank">Télécharger</a>
-
-**Présentation PDF** : <a href="../../raw/main/TZ%20-%20Guillaume%20Nibert%20-%20Pr%C3%A9sentation%20-%20Mise%20en%20place%20d'une%20communication%20entre%20un%20Raspberry%20Pi%20et%20un%20t%C3%A9l%C3%A9phone%20IP.pdf" download target="_blank">Télécharger</a>
-
-Les annexes sont uniquement disponibles dans le rapport.
+Les annexes sont disponibles dans le rapport.
 
 </div>
 

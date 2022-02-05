@@ -18,11 +18,11 @@ Supervisor: [Dr. Ahmed Lounis](https://www.hds.utc.fr/~lounisah/dokuwiki/)**
 
 ---
 
-English article: https://guillaume.nibert.fr/voip-asterisk-rpi-ipphone-project/
+English article: https://guillaume.nibert.fr/voip-asterisk-rpi-ipphone-project/<br>
 English PDF report: <a href="https://github.com/guillaumenibert/VoIP-Asterisk-WebRTC-SIP/raw/main/PDF/en/TZ%20-%20Guillaume%20Nibert%20-%20Report%20-%20Setting%20up%20a%20VoIP%20communication%20between%20a%20Raspberry%20Pi%20and%20an%20IP%20phone.pdf" download>Download</a><br>
 English PDF presentation material: <a href="https://github.com/guillaumenibert/VoIP-Asterisk-WebRTC-SIP/raw/main/PDF/en/TZ%20-%20Guillaume%20Nibert%20-%20Presentation%20-%20Setting%20up%20a%20VoIP%20communication%20between%20a%20Raspberry%20Pi%20and%20an%20IP%20phone.pdf" download>Download</a><br><br>
 
-French article: https://guillaume.nibert.fr/fr/voip-asterisk-rpi-ipphone-projet/
+French article: https://guillaume.nibert.fr/fr/voip-asterisk-rpi-ipphone-projet/<br>
 French PDF report: <a href="https://github.com/guillaumenibert/VoIP-Asterisk-WebRTC-SIP/raw/main/PDF/fr/TZ%20-%20Guillaume%20Nibert%20-%20Rapport%20-%20Mise%20en%20place%20d'une%20communication%20entre%20un%20Raspberry%20Pi%20et%20un%20t%C3%A9l%C3%A9phone%20IP.pdf" download>Download</a><br>
 French PDF presentation material: <a href="https://github.com/guillaumenibert/VoIP-Asterisk-WebRTC-SIP/raw/main/PDF/fr/TZ%20-%20Guillaume%20Nibert%20-%20Pr%C3%A9sentation%20-%20Mise%20en%20place%20d'une%20communication%20entre%20un%20Raspberry%20Pi%20et%20un%20t%C3%A9l%C3%A9phone%20IP.pdf" download>Download</a><br>
 
